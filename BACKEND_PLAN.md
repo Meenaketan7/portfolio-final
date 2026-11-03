@@ -1,6 +1,6 @@
 # Phoenix backend and Docker boilerplate
 
-Status: agreed plan, pending implementation. This document describes the intended architecture and acceptance criteria; it does not claim that these features are already implemented.
+Status: implementation in progress. The quality tooling, separate SQLite repositories, and runtime server roles are present; APIs, authentication, deployment modes, and Docker remain planned. The checklist below is the acceptance source of truth.
 
 ## 1. Foundation and research findings
 

@@ -1,22 +1,14 @@
-# Server
+# Portfolio backend
 
-To start your Phoenix server:
+This Phoenix API scaffold has separate Identity and Content SQLite repositories. `SERVER_ROLE` selects `all` (the default), `identity`, or `content` at startup. Domain APIs, authentication, and the deployment-mode switch are still planned; the router currently has no application endpoints or root page.
 
-* Run `mix setup` to install and setup dependencies
-* Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+From `server/`, install dependencies and initialize the local databases, then start Phoenix:
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+```sh
+mix setup
+mix phx.server
+```
 
-Ready to run in production? Please [check our deployment guides](https://phoenix.hexdocs.pm/deployment.html).
+Development and test databases are created under the ignored `server/data/` directory. Run `mix precommit` for formatting, compilation, Credo, and tests. The [backend plan](../BACKEND_PLAN.md) covers the intended API and deployment architecture.
 
-For a release, start the endpoint with `PHX_SERVER=true bin/server start`. The
-app name `server` already produces a `bin/server` release executable, so do not
-generate Phoenix's default `bin/server` helper with `mix phx.gen.release`.
-
-## Learn more
-
-* Official website: https://www.phoenixframework.org/
-* Guides: https://phoenix.hexdocs.pm/overview.html
-* Docs: https://phoenix.hexdocs.pm
-* Forum: https://elixirforum.com/c/phoenix-forum
-* Source: https://github.com/phoenixframework/phoenix
+For a production release, start the endpoint with `PHX_SERVER=true bin/server start`. The app name `server` already produces a `bin/server` release executable; do not generate Phoenix's default `bin/server` helper with `mix phx.gen.release`.

@@ -114,6 +114,6 @@ Useful primary references: [SvelteKit SEO](https://svelte.dev/docs/kit/seo), [se
 
 - Replace the starter home page and empty public pages with real content.
 - Complete the intended UI context/provider and add API state tooling only when a feature needs it.
-- Add Phoenix, SQLite, API contracts, authentication, and actual protection for private routes.
+- Add Phoenix domain APIs, migrations for application data, authentication, and actual protection for private routes. The Phoenix scaffold and separate SQLite repositories are already present.
 - Replace the Svelte favicon and placeholder `Portfolio` branding with final site assets and copy.
 - Simplify the `test` script if the project should use Bun without invoking npm.
