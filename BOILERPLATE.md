@@ -1,12 +1,12 @@
-# Portfolio boilerplate
+# SvelteKit + Phoenix boilerplate guide
 
-This document records the current frontend setup, the commands needed to run it, and the planned SEO and backend work. The SvelteKit app is in `app/`, and the Phoenix/SQLite backend scaffold is in `server/`. The repository has a root Bun package for Git hooks and a separate Bun package in `app/`; it is not configured as a Bun workspace.
+This guide describes the reusable `boiler-plate` branch. The SvelteKit frontend is in `app/`, and the API-only Phoenix backend with two SQLite repositories is in `server/`. The repository has a root Bun package for Git hooks and a separate Bun package in `app/`; it is not configured as a Bun workspace. The starter does not include the personal `resume/` directory from `main`.
 
-Follow [the backend and Docker implementation plan](./BACKEND_PLAN.md) for the agreed architecture, deployment modes, quality gates, environments, and implementation checklist. Those planned features are not yet implemented.
+[BACKEND_PLAN.md](./BACKEND_PLAN.md) is an optional roadmap for a content-focused application, including authentication, deployment modes, and Docker. Some foundation work exists; the planned product features and deployment topology are not implemented.
 
 ## Run the frontend
 
-Node 24 and Bun were used during setup. The commands below assume Bun and Volta are already installed. In particular, the TypeScript Oxfmt config failed to load with Node 22.14 and worked after updating Node through Volta:
+Node 24 and Bun were used during setup. Install Bun using the [official instructions](https://bun.com/docs/installation) and Node using your preferred version manager. For example, with Volta:
 
 ```sh
 volta install node@24
@@ -25,6 +25,19 @@ bun run dev
 
 Open the local address printed by Vite. The frontend runs without Phoenix for now. From `app/`, use `bun run build` for a production build and `bun run preview` to inspect that build. The current SvelteKit adapter is `adapter-auto`; the intended self-hosted SSR deployment still needs an adapter decision.
 
+## Run the backend
+
+Elixir 1.19 and Erlang/OTP 28 were used during setup. From `server/`, install dependencies, create the local databases, run migrations, and start Phoenix:
+
+```sh
+mix setup
+mix phx.server
+```
+
+The server listens on port 4000 by default. Its root URL and business API paths return 404 because no routes are defined for them yet. Development and test SQLite databases are stored in the automatically created, Git-ignored `server/data/` directory.
+
+The backend has separate Identity and Content Repo modules. `SERVER_ROLE=all` starts both; `SERVER_ROLE=identity` or `SERVER_ROLE=content` starts only the selected Repo. A role guard Plug exists but is not mounted in the router. These settings do not yet provide separate services or role-specific API routes. Run `mix precommit` from `server/` to check formatting, compile, run Credo, and run tests; `mix quality` adds the dependency audit, Dialyzer, and Sobelow. If your Hex installation lacks `mix hex.audit`, update it with `mix local.hex` before running `mix quality`.
+
 ## Frontend setup already present
 
 | Area | Current implementation |
@@ -41,7 +54,7 @@ Open the local address printed by Vite. The frontend runs without Phoenix for no
 
 The root page is `app/src/routes/(public)/+page.svelte` and serves `/`; it still contains starter content. `/about`, `/contact`, `/home`, and `/dashboard` have empty page files. These URLs are currently reachable while `robots.txt` allows crawling, so they need indexing decisions before deployment. Route groups such as `(public)` and `(private)` do not appear in URLs, and `(private)` does **not** implement authentication. The `/404`, `/500`, and `/default` pages are ordinary routes that render their screen; real route failures use `+error.svelte` and their actual HTTP status.
 
-`app/src/lib/hooks/store/ui/index.ts` defines a typed UI context helper, but there is no mounted provider or application state implementation yet. TanStack Query, Zustand, Phoenix API integration, and a database are not installed.
+`app/src/lib/hooks/store/ui/index.ts` defines a typed UI context helper, but there is no mounted provider or application state implementation yet. TanStack Query and Zustand are not installed, and the frontend has no Phoenix API integration or direct database access.
 
 ## Commands
 
@@ -84,7 +97,7 @@ bun run build
 The root Husky hooks run only when staged changes include `app/`. The pre-commit hook runs `format:check`, `lint`, and `check` from `app/`; it **does not autoformat**. Run `bun run format` first when formatting needs fixing, then review and stage the result. The commit-message hook requires a Conventional Commit message, for example:
 
 ```sh
-git commit -m "feat(app): add portfolio page"
+git commit -m "feat(app): add home page"
 ```
 
 The original `sv`-generated README recorded this recipe for the initial Svelte/Tailwind/Vitest scaffold; the target directory below is shown as this repo's `app/`. It does not recreate the later shadcn, Paraglide, theme, error, or tooling customizations; use the lockfiles and `bun install` to run this repository instead.
@@ -93,9 +106,9 @@ The original `sv`-generated README recorded this recipe for the initial Svelte/T
 bun x sv@0.17.1 create --template minimal --types ts --add tailwindcss="plugins:typography" vitest="usages:unit,component" --install bun app
 ```
 
-## SEO and publishing TODO
+## Optional SEO and publishing roadmap
 
-Shared/content SEO is limited to the `SeoData` type in `app/src/lib/seo/types.ts` and a permissive `app/static/robots.txt`; error display pages already set titles and `noindex`. There is no shared SEO head, canonical or `hreflang` output, social preview image, structured data, sitemap, blog route, or API-driven content. The empty pages are not ready for indexing. The SEO architecture should make one publish action update the article HTML, metadata, language links, and discovery files together.
+For a content-driven project, shared/content SEO is currently limited to the `SeoData` type in `app/src/lib/seo/types.ts` and a permissive `app/static/robots.txt`; error display pages already set titles and `noindex`. There is no shared SEO head, canonical or `hreflang` output, social preview image, structured data, sitemap, blog route, or API-driven content. The empty pages are not ready for indexing. If publishing posts, one publish action should update the article HTML, metadata, language links, and discovery files together.
 
 - [ ] Define Phoenix/SQLite content records for posts and, if needed, editable site pages. Store a stable post ID and per-locale slug, title, excerpt, body, publication state, author, image, `publishedAt`, and meaningful `modifiedAt`. Allow page-specific SEO title/description/image overrides; validate required content before publishing. Record old slugs for redirects.
 - [ ] Define a public API contract that returns published content and SEO fields together, plus the locale-to-slug map for translations. Keep drafts and private data out of public responses. The SvelteKit frontend should fetch its public content from Phoenix; SQLite remains private to Phoenix on the server.
@@ -110,10 +123,12 @@ Shared/content SEO is limited to the `SeoData` type in `app/src/lib/seo/types.ts
 
 Useful primary references: [SvelteKit SEO](https://svelte.dev/docs/kit/seo), [server data loading](https://svelte.dev/docs/kit/load), [Node deployment](https://svelte.dev/docs/kit/adapter-node), [Google's multilingual guidance](https://developers.google.com/search/docs/specialty/international/localized-versions), [sitemap guidance](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap), and [Article structured data](https://developers.google.com/search/docs/appearance/structured-data/article). A sitemap and metadata aid discovery and presentation, but do not guarantee indexing or rankings; original, useful content remains essential.
 
-## Other pending work
+## Customize before using this starter
 
-- Replace the starter home page and empty public pages with real content.
-- Complete the intended UI context/provider and add API state tooling only when a feature needs it.
-- Add Phoenix, SQLite, API contracts, authentication, and actual protection for private routes.
-- Replace the Svelte favicon and placeholder `Portfolio` branding with final site assets and copy.
-- Simplify the `test` script if the project should use Bun without invoking npm.
+- Replace the starter home page and empty public pages with the new project's content; decide which routes may be indexed before deployment.
+- Rename the root package `portfolio-tooling` and replace placeholder `Portfolio` titles in `app/src/error.html` and `app/src/lib/components/screen-components/error/error-screen.svelte`.
+- Replace the favicon and choose the new site's canonical domain, social image, and SEO policy.
+- Complete the UI context/provider and add client-side API state tooling only if a feature needs it.
+- Add API routes/contracts, content schemas and migrations, authentication, and protection for private routes if the new project needs them. Phoenix and SQLite are already installed.
+- Choose a self-hosted SvelteKit adapter and deployment setup before production; the current `adapter-auto` build is not a deployable server bundle by itself.
+- Simplify the frontend `test` script if the project should use Bun without invoking npm.

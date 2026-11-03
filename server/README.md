@@ -1,22 +1,18 @@
-# Server
+# Phoenix API backend
 
-To start your Phoenix server:
+This is an API-only Phoenix scaffold with separate `Server.Identity.Repo` and `Server.Content.Repo` SQLite repositories. There is no root page or business API route yet, so an HTTP 404 at `http://localhost:4000/` is expected.
 
-* Run `mix setup` to install and setup dependencies
-* Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+From `server/`, install dependencies, create the local databases, run migrations, and start the endpoint:
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+```sh
+mix setup
+mix phx.server
+```
 
-Ready to run in production? Please [check our deployment guides](https://phoenix.hexdocs.pm/deployment.html).
+Development and test databases live in the automatically created, Git-ignored `server/data/` directory. `SERVER_ROLE` defaults to `all`; setting it to `identity` or `content` starts only that role's repository. The role guard Plug exists, but it is not attached to API routes yet. Separate service deployments and Docker are planned, not implemented.
 
-For a release, start the endpoint with `PHX_SERVER=true bin/server start`. The
-app name `server` already produces a `bin/server` release executable, so do not
-generate Phoenix's default `bin/server` helper with `mix phx.gen.release`.
+Run `mix precommit` to check formatting, compile, run Credo, and run tests. Run `mix quality` for the broader audit, Dialyzer, and Sobelow checks. If `mix hex.audit` is unavailable, update Hex with `mix local.hex` first.
 
-## Learn more
+For a production release, `runtime.exs` requires `SECRET_KEY_BASE`, plus `IDENTITY_DATABASE_PATH` and/or `CONTENT_DATABASE_PATH` for the selected role. Set `PHX_HOST` to the public hostname; otherwise URL generation defaults to `example.com`. The app is named `server`, so start its release executable with `PHX_SERVER=true bin/server start`; do not generate Phoenix's conflicting default `bin/server` helper.
 
-* Official website: https://www.phoenixframework.org/
-* Guides: https://phoenix.hexdocs.pm/overview.html
-* Docs: https://phoenix.hexdocs.pm
-* Forum: https://elixirforum.com/c/phoenix-forum
-* Source: https://github.com/phoenixframework/phoenix
+See the [repository guide](../BOILERPLATE.md) and the [optional backend roadmap](../BACKEND_PLAN.md) for architecture and remaining work.

@@ -1,6 +1,6 @@
-# Phoenix backend and Docker boilerplate
+# Optional Phoenix backend and Docker roadmap
 
-Status: agreed plan, pending implementation. This document describes the intended architecture and acceptance criteria; it does not claim that these features are already implemented.
+Status: optional content-focused roadmap, partly started. The starter already has quality tooling, separate Identity and Content SQLite repositories, and runtime Repo selection. API routes, authentication, the service launcher, and Docker are not implemented. The quality-foundation checklist item remains open until CI and coverage are in place. The items below are proposed work for a project that needs them, not requirements for every clone of the boilerplate.
 
 ## 1. Foundation and research findings
 
@@ -15,7 +15,7 @@ Extend the existing Phoenix scaffold, keeping `app/` and `server/` in the monore
 
 These are representative sources; there is no universally best boilerplate. Their larger dependency stacks will stay outside this project.
 
-The agreed scope is admin authentication, minimal localized pages/posts, both backend deployment modes, frontend login/SSR integration, and Docker environments. A full CMS interface, uploads, public registration, and scheduled publishing remain future features.
+The proposed scope is admin authentication, minimal localized pages/posts, both backend deployment modes, frontend login/SSR integration, and Docker environments. A full CMS interface, uploads, public registration, and scheduled publishing remain future features.
 
 ## 2. Backend structure and deployment modes
 
@@ -113,7 +113,7 @@ Database sessions provide straightforward revocation and fit this admin-only app
 
 ### Quality gates
 
-Add Credo, Dialyxir, and Sobelow as development/test tools. The complete backend gate checks:
+Credo, Dialyxir, and Sobelow are present as development/test tools. The complete backend gate should check:
 
 - Formatting without rewriting files.
 - Compilation with warnings treated as errors.
@@ -122,7 +122,7 @@ Add Credo, Dialyxir, and Sobelow as development/test tools. The complete backend
 - Unused lockfile entries.
 - ExUnit tests and coverage.
 
-Use a patched Hex version supporting native security auditing. Keep formatting fixes separate from verification commands. [Hex audit](https://hex.hexdocs.pm/Mix.Tasks.Hex.Audit.html)
+Use a Hex release that includes `mix hex.audit`; Hex 2.5.4 was used during setup. If the task is unavailable, update Hex with `mix local.hex`. Keep formatting fixes separate from verification commands. [Hex audit](https://hex.hexdocs.pm/Mix.Tasks.Hex.Audit.html)
 
 Extend Git hooks with checks scoped to changed frontend/backend paths. CI runs the complete required gates, including frontend checks and container smoke tests.
 
@@ -158,7 +158,7 @@ A root launcher selects the environment and translates `MICROSERVICES` into the 
 - Persist database directories, including SQLite sidecar files. SvelteKit never mounts them.
 - Retain WAL and foreign-key enforcement; explicitly budget connection pools and cache memory.
 - Replace automatic application-start migrations with a single maintenance job. Application startup waits for successful migration completion. [Compose startup conditions](https://docs.docker.com/compose/how-tos/startup-order/)
-- Inspect and back up existing databases before replacing the current single-Repo configuration.
+- Back up the existing Identity and Content databases before future schema or deployment-mode changes.
 - Add structured production logs, request correlation, request/query telemetry, and secret filtering.
 
 Provide manual local backup/restore commands initially:
@@ -173,7 +173,7 @@ Automated off-host backups are deferred as requested; local exports do not cover
 
 ## 5. Acceptance tests and delivery order
 
-Completion requires:
+For a project implementing this roadmap, completion requires:
 
 - Identical authentication behavior through local and HTTP service interfaces.
 - Correct supervisors, repositories, and enabled routes for every backend role.
