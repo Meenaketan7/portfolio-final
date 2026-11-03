@@ -1,0 +1,17 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"hero_greeting": "Bonjour !",
+	"language_selector_label": "Langue",
+	"theme_selector_label": "Apparence",
+	"theme_light": "Clair",
+	"theme_dark": "Sombre",
+	"theme_system": "Système",
+	"error_not_found": "Page introuvable",
+	"error_not_found_description": "La page que vous recherchez n’existe pas.",
+	"error_server": "Erreur du serveur",
+	"error_server_description": "Impossible de charger cette page. Veuillez réessayer plus tard.",
+	"error_generic": "Une erreur s’est produite",
+	"error_generic_description": "Veuillez réessayer ou retourner à l’accueil.",
+	"error_home": "Retour à l’accueil",
+	"error_retry": "Réessayer"
+}

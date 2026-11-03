@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="light dark" />
+		<meta name="robots" content="noindex" />
+		<title>%sveltekit.status% | Portfolio</title>
+		<style>
+			:root {
+				font-family: system-ui, sans-serif;
+				background: #fff;
+				color: #171717;
+			}
+
+			body {
+				box-sizing: border-box;
+				min-height: 100vh;
+				margin: 0;
+				display: grid;
+				place-items: center;
+				padding: 2rem;
+			}
+
+			main {
+				width: min(100%, 38rem);
+				border-top: 1px solid #d4d4d4;
+				padding-top: 2rem;
+			}
+
+			.status {
+				font-family: ui-monospace, monospace;
+				font-size: 0.75rem;
+				letter-spacing: 0.18em;
+			}
+
+			h1 {
+				font-size: clamp(2.5rem, 8vw, 4rem);
+				letter-spacing: -0.06em;
+				line-height: 1.05;
+			}
+
+			p {
+				line-height: 1.6;
+			}
+
+			a {
+				display: inline-block;
+				margin-top: 1.5rem;
+				border-radius: 0.625rem;
+				background: #171717;
+				color: #fff;
+				padding: 0.75rem 1rem;
+				text-decoration: none;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				:root {
+					background: #171717;
+					color: #fafafa;
+				}
+
+				main {
+					border-color: #404040;
+				}
+
+				a {
+					background: #fafafa;
+					color: #171717;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<p class="status">HTTP %sveltekit.status%</p>
+			<h1>Something went wrong.</h1>
+			<p>We couldn't load this page. Please try again later.</p>
+			<a href="/">Go home</a>
+		</main>
+	</body>
+</html>

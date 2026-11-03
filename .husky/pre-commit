@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+if git diff --cached --quiet -- app/; then
+  exit 0
+fi
+
+cd app
+bun run format:check
+bun run lint
+bun run check

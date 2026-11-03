@@ -1,0 +1,5 @@
+defmodule Server.Content.Repo do
+  use Ecto.Repo,
+    otp_app: :server,
+    adapter: Ecto.Adapters.SQLite3
+end
