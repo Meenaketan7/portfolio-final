@@ -1,0 +1,268 @@
+% %-------------------------
+% % Resume in LaTeX
+% % Author: Meenaketan Padhy
+% % License: MIT
+% %-------------------------
+
+\documentclass[letterpaper,10pt]{article}
+
+  \usepackage[margin=0.45in]{geometry}
+  \usepackage[T1]{fontenc}
+  \usepackage{newtxtext}
+  \usepackage{microtype}
+  \usepackage{enumitem}
+  \usepackage{needspace}
+  \usepackage[hidelinks]{hyperref}
+  \input{glyphtounicode}
+
+  \pdfgentounicode=1
+  \urlstyle{same}
+  \pagestyle{empty}
+
+  \hypersetup{
+    pdftitle={Meenaketan Padhy - Software Engineer},
+    pdfauthor={Meenaketan Padhy}
+  }
+
+  \setlength{\parindent}{0pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\emergencystretch}{2em}
+  \hyphenpenalty=10000
+  \exhyphenpenalty=10000
+  \clubpenalty=10000
+  \widowpenalty=10000
+  \raggedbottom
+
+  \AtBeginDocument{%
+    \fontsize{9.8pt}{10.9pt}\selectfont
+    \raggedright
+  }
+
+  \setlist[itemize]{
+    leftmargin=1.15em,
+    labelsep=0.35em,
+    label=\textbullet,
+    topsep=1pt,
+    partopsep=0pt,
+    itemsep=0.9pt,
+    parsep=0pt
+  }
+
+  \newcommand{\ressection}[1]{%
+    \par\addvspace{4pt}%
+    \Needspace{3\baselineskip}%
+    {\fontsize{10.5pt}{11.2pt}\selectfont\bfseries #1\par}%
+    \vspace{1.5pt}%
+  }
+
+  \newcommand{\skill}[2]{%
+    {\fontsize{9.05pt}{9.85pt}\selectfont
+      \textbf{#1:} #2\par}%
+  }
+
+  \newcommand{\job}[2]{%
+    \par\addvspace{2.5pt}%
+    \Needspace{3\baselineskip}%
+    \textbf{#1}\hfill
+    {\fontsize{9.2pt}{10pt}\selectfont #2}\par
+  }
+
+  \newcommand{\workgroup}[1]{%
+    \par\addvspace{1.5pt}%
+    \Needspace{2\baselineskip}%
+    {\fontsize{9.4pt}{10.2pt}\selectfont\bfseries #1\par}%
+  }
+
+  \begin{document}
+
+  %==================== HEADER ====================
+
+  {\centering
+    {\fontsize{17.5pt}{18.5pt}\selectfont
+      \bfseries Meenaketan Padhy\par}
+    \vspace{1pt}
+    Software Engineer \textbar{} Full-Stack \& Mobile Development\par
+    \vspace{2pt}
+    {\fontsize{9pt}{10pt}\selectfont
+      \href{mailto:meenaketanpadhy7@gmail.com}{meenaketanpadhy7@gmail.com}
+      \enspace\textbar{}\enspace +91 7008746872
+      \enspace\textbar{}\enspace
+      \href{https://linkedin.com/in/meenaketan}{linkedin.com/in/meenaketan}
+      \enspace\textbar{}\enspace
+      \href{https://github.com/Meenaketan7}{github.com/Meenaketan7}\par}
+  }
+
+  %==================== SKILLS ====================
+
+  \ressection{TECHNICAL SKILLS}
+
+  \skill{Languages}{
+    TypeScript, JavaScript, Python, Swift, Java, SQL, Bash, Elixir
+  }
+
+  \skill{Frontend \& Mobile}{
+    React, Next.js, React Native, Redux Toolkit, Zustand, Tailwind CSS,
+    Vite, React Query, React Flow
+  }
+
+  \skill{iOS \& Simulation}{
+    SwiftUI, UIKit, AVAudioEngine, Core Haptics, SIMD
+  }
+
+  \skill{Backend \& APIs}{
+    Node.js, NestJS, Express, FastAPI, Bun, Elysia, REST APIs,
+    GraphQL, Apollo, Socket.IO, BullMQ
+  }
+
+  \skill{Databases \& Data}{
+    PostgreSQL, pgvector, MySQL, MongoDB, SQLite, Redis, Prisma, Mongoose, Drizzle
+  }
+
+  \skill{AI \& Agents}{
+    Retrieval-augmented generation (RAG), LangGraph
+  }
+
+  \skill{Cloud \& Infrastructure}{
+    Google Cloud Platform (GCP), Cloud Run, Google Cloud Storage (GCS),
+    Cloud CDN, Terraform, Docker, Kubernetes (K3s), Firebase, Proxmox,
+    Debian, Raspberry Pi, Traefik, MetalLB, Tailscale
+  }
+
+  \skill{Tools \& Services}{
+    Git/GitHub, NeoVim, Xcode, Postman, Jest, Notifee, CleverTap,
+    Google Maps, 100ms, PubNub, Jitsi, SciChart, Bun, Npm
+  }
+
+  %==================== EXPERIENCE ====================
+
+  \ressection{PROFESSIONAL EXPERIENCE}
+
+  \job{Senior Software Developer, Good Work Labs}{July 2024 -- Present}
+
+  \workgroup{Internal Products}
+
+  \begin{itemize}
+    \item \textbf{\href{https://www.netskill.com/genesis/}{Genesis AI}:}
+    Architected an AI course authoring platform and served as primary
+    engineer from product design through GCP deployment; now lead
+    \textbf{five engineers}. Built React UI, NestJS APIs, Drizzle, Bun, pgvector RAG chat,
+    Redis/BullMQ jobs and Cloud Run infrastructure with Terraform for
+    course and media generation, translation, previews, SCORM exports, Bun ,
+    and LMS publishing.
+
+    \item \textbf{SmartBot:}
+    Independently designed, built and deployed a framework-agnostic
+    TypeScript sales and support widget for WordPress and web apps, with
+    Bun/Elysia, Drizzle, lead capture, emailed transcripts and Kriatix CRM integration.
+    Extended it into a multi-tenant FastAPI/LangGraph agent with configurable
+    personas, support and product skills, pgvector RAG, tenant isolation
+    and SearXNG/DuckDuckGo web research.
+
+    \item \textbf{Secure EPUB Reader:}
+    Independently designed and built a Kindle-style reader in Next.js and
+    Readium with pagination, search, bookmarks, highlights, progress,
+    customizable themes and typography. Secured paid content with
+    WooCommerce entitlements, email OTP, Drizzle, revocable sessions, authorization
+    for each resource, private GCS and Cloud CDN delivery, scraping
+    protection and session watermarks.
+
+    \item \textbf{NetSkill LMS:}
+    Led and mentored \textbf{five engineers} migrating a FlutterFlow
+    platform built two years earlier to React/TypeScript, Bun, admin and learner
+    web apps and React Native mobile in \textbf{20 days}. Owned frontend
+    architecture, UI design, reusable components, screen scaffolding
+    and Firebase web deployment.
+
+    \item \textbf{Kriatix CRM:}
+    Led \textbf{three frontend developers} and owned frontend delivery for
+    a responsive sales CRM in React and TypeScript with Redux Toolkit and
+    REST APIs. Built lead assignment, pipeline tracking, Gmail and chat
+    histories, records linked to tickets, AI lead extraction from call
+    recordings, proposals and funnel and revenue analytics.
+  \end{itemize}
+
+  \workgroup{Client: RED.Health}
+
+  \begin{itemize}
+    \item Led frontend engineering for \textbf{RED Assist (app and web)},
+    \textbf{Doctor Consultation} and \textbf{Salus v2} for Deutsche Bank,
+    Apollo and Orange Health. Architected React Native RED Assist for
+    emergency booking, teleconsultation, women's safety, real-time alerts
+    and ambulance tracking with Socket.IO and Google Maps.
+
+    \item Built ER video consultations using 100ms, live vitals streaming
+    with PubNub and waveforms with SciChart. Integrated Firebase, Notifee
+    and CleverTap for push notifications, tracking, chat, video and alerts.
+
+    \item Built React and Redux Toolkit HR/CHRO dashboards for onboarding,
+    plan configuration and role permissions. Designed \textbf{Salus v2}
+    with Vite, React Query, PubNub and Jitsi for ambulance tracking and
+    patient monitoring.
+  \end{itemize}
+
+  \job{Software Development Engineer, Searching Yard Pvt Ltd}
+      {April 2023 -- May 2024}
+
+  \begin{itemize}
+    \item Built Android, frontend and backend solutions, reducing enterprise
+    manual operations by \textbf{50\%}. Improved system performance
+    \textbf{50x (300 ms to 6 ms)} with Redis caching and Docker.
+
+    \item Implemented Socket.IO real-time notifications. Designed
+    authentication, referral rewards and wallet systems for affiliate
+    platforms.
+
+    \item Led UI and backend development for \textbf{Viloop} and
+    \textbf{Printbrix} e-commerce apps supporting custom pricing, bulk
+    ordering, B2C personalization and B2B workflows. Owned TypeScript UI
+    development and API integration, improved performance and scalability,
+    and accelerated React and Redux ERP dashboards by \textbf{2x to 5x}.
+  \end{itemize}
+
+  %==================== PROJECTS ====================
+
+  \ressection{PROJECTS}
+
+  \begin{itemize}
+    \item \textbf{\href{https://github.com/Meenaketan7/egress-ios}
+      {Egress (Evacuation Simulator)}:}
+    Built an offline iPhone evacuation simulator and deterministic Swift
+    engine from scratch with a teammate. Modeled crowds with social force
+    physics, SIMD, spatial hashing and multi-source BFS; simulated fire
+    with a cellular automaton and smoke with diffusion. Added venue editing,
+    live SwiftUI Canvas visualization, safety scoring and layout fixes
+    with reruns.
+    \textbf{Pocket Brain category winner, 2026 IndeHub Hackathon.}
+
+    \item \textbf{\href{https://github.com/Meenaketan7/work-flow-nodes}
+      {Forge (AI Build Planner)}:}
+    Built and deployed an AI planner with a teammate, turning nontechnical
+    users' ideas into editable architecture diagrams and build backlogs.
+    Used React Flow, Lemma agents, RAG, tables and cloud functions to save
+    designs, check dependencies, guide users from database design through
+    deployment, track progress and generate repository scaffolds after
+    approval.
+    \textbf{Top 20 among 400+ submissions, 2026 Gappy.ai--Lemma Hackathon.}
+
+    \item \textbf{Homelab \& Self-Hosted Infrastructure:}
+    Built a K3s cluster from two laptops and a Raspberry Pi: control planes
+    on Debian bare metal and in a Proxmox VM, plus a Pi worker.
+    Configured Tailscale remote access, Wake-on-LAN, monitoring, automated
+    replicated backups, recovery scripts and setup and restore
+    documentation. Host Jellyfin, Bitwarden, Pi-hole and Dockerized
+    Minecraft and Stardew Valley servers with access controls and
+    world management.
+  \end{itemize}
+
+  %==================== EDUCATION ====================
+
+  \ressection{EDUCATION}
+
+  {\fontsize{9.2pt}{10.2pt}\selectfont
+    \textbf{Silicon Institute of Technology (SIT)}
+    \hfill July 2019 -- June 2023\par
+    B.Tech in Computer Science and Engineering
+    \hfill Odisha, India \textbar{} CGPA: \textbf{8.9/10}\par
+  }
+
+  \end{document}
