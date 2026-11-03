@@ -9,6 +9,6 @@ mix setup
 mix phx.server
 ```
 
-Development and test databases are created under the ignored `server/data/` directory. Run `mix precommit` for formatting, compilation, Credo, and tests. The [backend plan](../BACKEND_PLAN.md) covers the intended API and deployment architecture.
+Development and test databases are created under the ignored `server/data/` directory. Run `mix precommit` to check formatting, compile, run Credo, and run tests. The [backend plan](../BACKEND_PLAN.md) covers the intended API and deployment architecture.
 
-For a production release, start the endpoint with `PHX_SERVER=true bin/server start`. The app name `server` already produces a `bin/server` release executable; do not generate Phoenix's default `bin/server` helper with `mix phx.gen.release`.
+For a production release, set `PHX_HOST` to the public hostname and start the endpoint with `PHX_SERVER=true bin/server start`. The app name `server` already produces a `bin/server` release executable; do not generate Phoenix's default `bin/server` helper with `mix phx.gen.release`.

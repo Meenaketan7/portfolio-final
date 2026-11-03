@@ -1,6 +1,6 @@
 # Phoenix backend and Docker boilerplate
 
-Status: implementation in progress. The quality tooling, separate SQLite repositories, and runtime server roles are present; APIs, authentication, deployment modes, and Docker remain planned. The checklist below is the acceptance source of truth.
+Status: implementation in progress. The quality tooling, separate SQLite repositories, and runtime server roles are present; APIs, authentication, deployment modes, and Docker remain planned. The quality-foundation checklist item remains open until CI and coverage are in place. The checklist below is the acceptance source of truth.
 
 ## 1. Foundation and research findings
 
