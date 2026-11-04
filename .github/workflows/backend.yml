@@ -23,4 +23,4 @@ jobs:
           otp-version: "28"
           elixir-version: "1.19.5"
       - run: mix deps.get
-      - run: mix precommit
+      - run: mix quality
