@@ -6,6 +6,7 @@ const localePaths = (suffix: string) =>
 
 export default defineConfig({
 	outdir: './src/lib/paraglide',
+	outputStructure: 'message-modules',
 	emitTsDeclarations: true,
 	strategy: ['url', 'cookie', 'preferredLanguage', 'baseLocale'],
 	urlPatterns: [

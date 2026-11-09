@@ -2,8 +2,8 @@
 	import MoonIcon from '@lucide/svelte/icons/moon';
 	import SunIcon from '@lucide/svelte/icons/sun';
 	import { toggleMode } from 'mode-watcher';
-	import { Button } from '~/lib/components/ui/button/index.js';
-	import { m } from '~/lib/paraglide/messages.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { m } from '#lib/paraglide/messages.js';
 </script>
 
 <h1>{m.hero_greeting()}</h1>

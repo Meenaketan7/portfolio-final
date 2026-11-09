@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { ErrorScreen } from '$lib/components/screen-components/error';
-	import { m } from '$lib/paraglide/messages.js';
-	import { localizeHref } from '$lib/paraglide/runtime.js';
+	import { ErrorScreen } from '#lib/components/screen-components/error/index.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { localizeHref } from '#lib/paraglide/runtime.js';
 </script>
 
 <svelte:head>
