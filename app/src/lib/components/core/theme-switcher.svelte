@@ -3,9 +3,9 @@
 	import MoonIcon from '@lucide/svelte/icons/moon';
 	import SunIcon from '@lucide/svelte/icons/sun';
 	import { setMode, userPrefersMode } from 'mode-watcher';
-	import { m } from '$lib/paraglide/messages.js';
-	import { cn } from '$lib/utils';
-	import { Button } from '$lib/components/ui/button';
+	import { m } from '#lib/paraglide/messages.js';
+	import { cn } from '#lib/utils/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
 
 	let { class: className }: { class?: string } = $props();
 </script>

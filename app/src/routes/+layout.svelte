@@ -1,14 +1,12 @@
 <script lang="ts">
-	import type { Pathname } from '$app/types';
-	import { resolve } from '$app/paths';
 	import { navigating, page } from '$app/state';
 	import { onMount } from 'svelte';
-	import { locales, localizeHref } from '$lib/paraglide/runtime';
+	import { locales, localizeHref } from '#lib/paraglide/runtime.js';
 	import '../themes/global.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '#lib/assets/favicon.svg';
 	import { ModeWatcher } from 'mode-watcher';
-	import { Toaster } from '~/lib/components/ui/sonner';
-	import { LanguageSwitcher, ThemeSwitcher } from '~/lib';
+	import { Toaster } from '#lib/components/ui/sonner/index.js';
+	import { LanguageSwitcher, ThemeSwitcher } from '#lib';
 
 	let { children } = $props();
 	let mounted = $state(false);
@@ -35,7 +33,7 @@
 
 <div style="display:none">
 	{#each locales as locale (locale)}
-		<a href={resolve(localizeHref(page.url.pathname, { locale }) as Pathname)}>{locale}</a>
+		<a href={localizeHref(page.url.pathname, { locale })} data-sveltekit-reload>{locale}</a>
 	{/each}
 </div>
 

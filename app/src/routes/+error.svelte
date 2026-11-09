@@ -2,9 +2,9 @@
 	import { page } from '$app/state';
 	import { untrack } from 'svelte';
 	import { toast } from 'svelte-sonner';
-	import { ErrorScreen } from '$lib/components/screen-components/error';
-	import { m } from '$lib/paraglide/messages.js';
-	import { localizeHref } from '$lib/paraglide/runtime.js';
+	import { ErrorScreen } from '#lib/components/screen-components/error/index.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { localizeHref } from '#lib/paraglide/runtime.js';
 
 	let title = $derived(
 		page.status === 404

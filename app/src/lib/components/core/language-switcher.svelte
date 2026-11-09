@@ -1,9 +1,9 @@
 <script lang="ts">
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import LanguagesIcon from '@lucide/svelte/icons/languages';
-	import { m } from '$lib/paraglide/messages.js';
-	import { getLocale, isLocale, locales, setLocale, type Locale } from '$lib/paraglide/runtime.js';
-	import { cn } from '$lib/utils';
+	import { m } from '#lib/paraglide/messages.js';
+	import { getLocale, isLocale, locales, setLocale, type Locale } from '#lib/paraglide/runtime.js';
+	import { cn } from '#lib/utils/index.js';
 
 	const languageNames: Record<Locale, string> = {
 		en: 'English',
