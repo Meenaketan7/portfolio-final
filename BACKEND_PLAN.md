@@ -146,7 +146,7 @@ Commit example files only. Real environment files, credentials, database files, 
 
 - Separate frontend and backend multistage Dockerfiles.
 - Bun remains the frontend package/build tool.
-- Run the existing SvelteKit 2 application using Node 24 and compatible `adapter-node` 5.5.4. At the time of research, the official Bun adapter targeted SvelteKit 3 prereleases. [Node adapter compatibility](https://raw.githubusercontent.com/sveltejs/kit/@sveltejs/adapter-node@5.5.4/packages/adapter-node/package.json), [Bun adapter requirements](https://raw.githubusercontent.com/sveltejs/kit/main/packages/adapter-bun/package.json)
+- Run the upgraded SvelteKit 3 application using Node 24 and a stable, compatible `adapter-node` release selected at the deployment milestone. The current frontend still uses `adapter-auto`; its dependency upgrade does not configure production deployment. Follow the current [Node adapter documentation](https://svelte.dev/docs/kit/adapter-node), including SvelteKit 3's `paths.origin` configuration.
 - Use pinned images, frozen dependency installs, non-root runtime users, and minimal runtime contents.
 - Keep Phoenix ports private; expose the browser application through Caddy.
 - Add health checks, graceful shutdown, restart policies, log rotation, and explicit resource settings.

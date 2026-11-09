@@ -42,15 +42,19 @@ The backend has separate Identity and Content Repo modules. `SERVER_ROLE=all` st
 
 | Area | Current implementation |
 | --- | --- |
-| Framework | SvelteKit 2, Svelte 5 runes, server-side rendering by default, strict TypeScript, Bun. |
+| Framework | SvelteKit 3, Svelte 5 runes, server-side rendering by default, strict TypeScript 6, Bun. |
 | Styling | Tailwind CSS 4, typography plugin, shadcn-svelte neutral light/dark tokens, Inter Variable, and `tw-animate-css` in `app/src/themes/global.css`. |
 | Components | shadcn-svelte `Button` and `Sonner` components live under `app/src/lib/components/ui/`; `cn` lives under `app/src/lib/utils/`. |
-| Aliases | SvelteKit defines `~` as `app/src` in `app/svelte.config.ts`; `$lib` is SvelteKit's built-in alias. `app/components.json` maps shadcn components, UI, utils, and hooks into `~/lib/...`. |
+| Aliases | `app/package.json` defines native `#lib` and `#lib/*` imports for `app/src/lib/`. `app/components.json` maps shadcn components, UI, utils, and hooks into `#lib/...`; source imports include file extensions or `/index.js` for barrels. |
 | Theme | Global `ModeWatcher` plus a light/dark/system switcher using `mode-watcher`. |
 | Languages | Paraglide URL/cookie/preferred-language handling with English as the fallback, plus Spanish, Brazilian Portuguese, German, French, and Japanese. Messages are in `app/src/lib/messages/`. Server hooks set the HTML language and direction. |
 | Global UI | Root layout mounts the theme and language switchers, Sonner toaster, favicon, and a thin progress bar for initial mount and navigation. |
 | Errors | Root `+error.svelte` displays a localized shared error screen and triggers a toast. Separate `/404`, `/500`, and `/default` display pages exist. `app/src/error.html` is the last-resort fallback. |
 | Quality | Oxfmt, Oxlint, `svelte-check`, Vitest browser/server projects, Husky, and Conventional Commit validation. |
+
+The stable dependency upgrade on 2026-11-09 moves SvelteKit configuration into `app/vite.config.ts`, as required by SvelteKit 3. It preserves the existing source folders, adapter choice, runes setting, theme, and six locales. `app/tsconfig.json` extends `$app/tsconfig`; TypeScript stays on 6.0.3 because the current SvelteKit and Svelte Check peer requirements support TypeScript 6. Paraglide 3 explicitly uses `message-modules` output in the same ignored `src/lib/paraglide/` directory. See the [SvelteKit 3 migration guide](https://svelte.dev/docs/kit/migrating-to-sveltekit-3) for the framework changes.
+
+The app temporarily overrides Typography's pinned `postcss-selector-parser` to the [6.1.5 security backport](https://github.com/postcss/postcss-selector-parser/releases/tag/6.1.5); remove that override when Typography adopts a patched release. `source-map-js` is patched in the lockfile. `bun audit` may still report the low-severity deepmerge advisory: its [canonical CVE record](https://raw.githubusercontent.com/CVEProject/cvelistV5/main/cves/2026/93xxx/CVE-2026-93753.json) was rejected on 2026-11-02, while npm's audit metadata still lists it. Keep the plugin's supported deepmerge version rather than downgrading it to silence this stale report.
 
 The root page is `app/src/routes/(public)/+page.svelte` and serves `/`; it still contains starter content. `/about`, `/contact`, `/home`, and `/dashboard` have empty page files. These URLs are currently reachable while `robots.txt` allows crawling, so they need indexing decisions before deployment. Route groups such as `(public)` and `(private)` do not appear in URLs, and `(private)` does **not** implement authentication. The `/404`, `/500`, and `/default` pages are ordinary routes that render their screen; real route failures use `+error.svelte` and their actual HTTP status.
 
