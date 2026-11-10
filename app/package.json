@@ -4,6 +4,7 @@
 	"private": true,
 	"type": "module",
 	"imports": {
+		"#config/*": "./src/config/*",
 		"#lib": "./src/lib/index.js",
 		"#lib/*": "./src/lib/*"
 	},
@@ -18,10 +19,13 @@
 		"format": "oxfmt .",
 		"format:check": "oxfmt --check .",
 		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run",
-		"i18n:compile": "paraglide-js compile --project ./project.inlang"
+		"test": "vitest run",
+		"i18n:compile": "paraglide-js compile --project ./project.inlang",
+		"create-api": "bun scripts/create-api.ts",
+		"create-api:admin": "bun run create-api admin"
 	},
 	"dependencies": {
+		"@tanstack/svelte-query": "^6.4.1",
 		"mode-watcher": "^1.1.0"
 	},
 	"devDependencies": {
@@ -33,6 +37,7 @@
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
 		"@tailwindcss/typography": "^0.5.20",
 		"@tailwindcss/vite": "^4.3.5",
+		"@tanstack/svelte-query-devtools": "^6.4.1",
 		"@vitest/browser-playwright": "^5.1.0",
 		"cn": "^0.5.2",
 		"oxfmt": "^0.78.0",

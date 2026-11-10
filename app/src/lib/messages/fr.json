@@ -13,5 +13,7 @@
 	"error_generic": "Une erreur s’est produite",
 	"error_generic_description": "Veuillez réessayer ou retourner à l’accueil.",
 	"error_home": "Retour à l’accueil",
-	"error_retry": "Réessayer"
+	"error_retry": "Réessayer",
+	"network_offline": "Hors ligne. Les pages chargées restent accessibles ; les actions réseau nécessitent une connexion.",
+	"loading": "Chargement"
 }

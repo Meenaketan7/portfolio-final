@@ -13,5 +13,7 @@
 	"error_generic": "問題が発生しました",
 	"error_generic_description": "もう一度お試しいただくか、ホームに戻ってください。",
 	"error_home": "ホームに戻る",
-	"error_retry": "もう一度試す"
+	"error_retry": "もう一度試す",
+	"network_offline": "オフラインです。読み込み済みのページは引き続き利用できます。通信が必要な操作には接続が必要です。",
+	"loading": "読み込み中"
 }

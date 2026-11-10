@@ -3,6 +3,6 @@
 export * from './utils';
 export * from './components';
 export * from './hooks';
-export * from './contants';
+export * from './constants';
 export * from './commons';
 export * from './assets';

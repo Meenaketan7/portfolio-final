@@ -3,7 +3,10 @@
 declare global {
 	namespace App {
 		// interface Error {}
-		// interface Locals {}
+		interface Locals {
+			// Set this only after verifying a session on the server.
+			user?: { id: string; role: 'user' | 'admin' } | null;
+		}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}
