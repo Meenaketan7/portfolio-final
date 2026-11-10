@@ -13,5 +13,7 @@
 	"error_generic": "Something went wrong",
 	"error_generic_description": "Please try again or return to the home page.",
 	"error_home": "Go home",
-	"error_retry": "Try again"
+	"error_retry": "Try again",
+	"network_offline": "You're offline. Loaded pages remain available; network actions need a connection.",
+	"loading": "Loading"
 }

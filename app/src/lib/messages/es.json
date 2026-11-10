@@ -13,5 +13,7 @@
 	"error_generic": "Algo salió mal",
 	"error_generic_description": "Inténtalo de nuevo o vuelve al inicio.",
 	"error_home": "Volver al inicio",
-	"error_retry": "Reintentar"
+	"error_retry": "Reintentar",
+	"network_offline": "Sin conexión. Las páginas cargadas siguen disponibles; las acciones de red requieren conexión.",
+	"loading": "Cargando"
 }

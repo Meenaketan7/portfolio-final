@@ -13,5 +13,7 @@
 	"error_generic": "Algo deu errado",
 	"error_generic_description": "Tente novamente ou volte para a página inicial.",
 	"error_home": "Voltar ao início",
-	"error_retry": "Tentar novamente"
+	"error_retry": "Tentar novamente",
+	"network_offline": "Sem conexão. As páginas carregadas continuam disponíveis; ações de rede precisam de conexão.",
+	"loading": "Carregando"
 }
