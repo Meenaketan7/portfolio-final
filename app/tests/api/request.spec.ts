@@ -61,6 +61,29 @@ describe('apiRequest', () => {
 		).resolves.toEqual({ ok: true });
 	});
 
+	it('uses an explicit locale for content without adding one to generic requests', async () => {
+		const requests: Array<{ path: string; language: string | null }> = [];
+		const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+			requests.push({
+				path: String(input),
+				language: new Headers(init?.headers).get('accept-language')
+			});
+			return Response.json({ ok: true });
+		});
+
+		await apiRequest('/content/posts/ola', {
+			fetcher,
+			locale: 'pt-br',
+			headers: { 'accept-language': 'fr' }
+		});
+		await apiRequest('/content/discovery', { fetcher });
+
+		expect(requests).toEqual([
+			{ path: '/api/v1/content/posts/ola', language: 'pt-BR' },
+			{ path: '/api/v1/content/discovery', language: null }
+		]);
+	});
+
 	it('turns malformed JSON error responses into an ApiError', async () => {
 		const fetcher = vi.fn(
 			async () =>

@@ -16,6 +16,7 @@ describe('Phoenix API proxy', () => {
 			method: 'POST',
 			headers: {
 				accept: 'application/json',
+				'accept-language': 'pt-BR',
 				authorization: 'Bearer token',
 				'content-type': 'application/json',
 				cookie: 'session=abc',
@@ -26,6 +27,8 @@ describe('Phoenix API proxy', () => {
 		});
 		const upstreamHeaders = new Headers({
 			'content-type': 'application/json',
+			'content-language': 'pt-BR',
+			vary: 'Accept-Language',
 			'cache-control': 'private, no-store',
 			'x-powered-by': 'Phoenix'
 		});
@@ -45,6 +48,7 @@ describe('Phoenix API proxy', () => {
 		expect(options?.redirect).toBe('manual');
 		expect(options?.signal).toBe(request.signal);
 		expect(headers.get('authorization')).toBe('Bearer token');
+		expect(headers.get('accept-language')).toBe('pt-BR');
 		expect(headers.get('cookie')).toBe('session=abc');
 		expect(headers.get('x-csrf-token')).toBe('csrf');
 		expect(headers.has('x-internal-secret')).toBe(false);
@@ -52,6 +56,8 @@ describe('Phoenix API proxy', () => {
 		expect(response.status).toBe(201);
 		expect(await response.json()).toEqual({ id: '42' });
 		expect(response.headers.get('cache-control')).toBe('private, no-store');
+		expect(response.headers.get('content-language')).toBe('pt-BR');
+		expect(response.headers.get('vary')).toBe('Accept-Language');
 		expect(response.headers.has('x-powered-by')).toBe(false);
 		expect(response.headers.getSetCookie()).toEqual([
 			'session=next; HttpOnly; Path=/',

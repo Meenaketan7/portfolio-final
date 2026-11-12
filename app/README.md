@@ -4,13 +4,17 @@ This SvelteKit app is the reusable frontend foundation in the `boiler-plate` bra
 
 The frontend uses SvelteKit 3, Svelte 5, Vite 8, and supported TypeScript 6. Framework configuration lives in `vite.config.ts`; `#lib` package imports resolve to the existing `src/lib/` folder.
 
-For installation, commands, localization, UI tooling, and the optional content SEO roadmap, see the [starter setup guide](../BOILERPLATE.md).
+For installation, commands, localization, and UI tooling, see the [starter setup guide](../BOILERPLATE.md).
+
+For the six-language public-page SEO rules, content API routes, sitemap, and production launch checklist, see [SEO.md](./SEO.md). The app uses the Node SSR adapter; set a real runtime `ORIGIN` before publishing indexable pages.
 
 ## API and state setup
 
 `src/routes/app-provider.svelte` composes the API and store providers. `src/lib/hooks/api/api-provider.svelte` creates a new TanStack Query client per rendered app instance, and `src/lib/hooks/store/store-provider.svelte` owns UI context. Server requests do not share a query cache or mutable UI store. Queries start in the browser; for SSR content, fetch it in a SvelteKit `load` function and pass it as `initialData` to `createQuery`.
 
 API configuration, the request client, and mutation error handling live in `src/config/api/`. Environment definitions live in `src/config/env/env-config.ts`. SvelteKit still discovers `src/env.ts`, so that file re-exports the definitions. Likewise, `src/hooks.ts` and `src/hooks.server.ts` remain small SvelteKit entrypoints while the Paraglide logic lives in `src/lib/hooks/i18n/`.
+
+Pass `locale` to `apiRequest` only when an API response depends on the public page's language. The request client sets `Accept-Language` from that explicit locale (`pt-br` becomes `pt-BR`); generic API calls and all-language sitemap discovery omit the option. The same-origin proxy forwards the request header and Phoenix's `Content-Language` and `Vary` response headers.
 
 Imports from `src/config/` use the `#config/*` package alias declared in `package.json`, with explicit `.js` extensions. Vite and TypeScript resolve it through the package imports map; `tsconfig.json` and `vite.config.ts` need no duplicate alias entries.
 
@@ -25,7 +29,7 @@ bun run create-api admin
 
 The generator refuses an existing folder and never overwrites its files. Import a generated service directly from `#lib/hooks/api/<name>/index.js`. In a component, use `createQuery(() => userQueries.detail<User>(id))` or `createMutation(() => userMutations.create<User, Input>())`; keep the returned query object intact so its reactive properties update. During SSR, pass the SvelteKit `fetch` function to an API service and use `initialData` on the page query. Mutations should invalidate related query keys after success.
 
-Temporary UI state is in `src/lib/hooks/store/ui/` and disappears on reload. `createSessionStore` is available for other nonpersistent state; child components can use `getUiContext()` during initialization. When a real preference needs persistence, create it with `createPersistentStore`, validate saved data, and call `start()` from `onMount` in its owner component. That hydrates browser storage after SSR and avoids hydration differences. Keep auth credentials in HTTP-only cookies, not browser storage. Theme persistence stays with `mode-watcher`, and language stays with Paraglide's URL/cookie handling.
+Temporary UI state is in `src/lib/hooks/store/ui/` and disappears on reload. `createSessionStore` is available for other nonpersistent state; child components can use `getUiContext()` during initialization. When a real preference needs persistence, create it with `createPersistentStore`, validate saved data, and call `start()` from `onMount` in its owner component. That hydrates browser storage after SSR and avoids hydration differences. Keep auth credentials in HTTP-only cookies, not browser storage. Theme persistence stays with `mode-watcher`, and public page language follows Paraglide's URL mapping.
 
 The global progress bar covers SvelteKit navigation, first-time active TanStack queries, active mutations, and UI work registered with `getUiContext().beginTask()`. Call its returned finish function in `finally` when an async UI task ends. The bar does not block the page or wait on background refetches or paused offline work. Required server-rendered screen data belongs in an awaited SvelteKit `load` function; individual query sections should show their own pending, paused/offline, and error states.
 

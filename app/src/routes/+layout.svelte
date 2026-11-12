@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { locales, localizeHref } from '#lib/paraglide/runtime.js';
 	import '../themes/global.css';
 	import favicon from '#lib/assets/favicon.svg';
 	import { ModeWatcher } from 'mode-watcher';
@@ -18,14 +17,8 @@
 		<GlobalProgress />
 		<ModeWatcher />
 		<Toaster />
-		<LanguageSwitcher />
+		<LanguageSwitcher pathname={page.url.pathname} alternates={page.data.seo?.alternates} />
 		<ThemeSwitcher />
 		{@render children()}
 	</NetworkGate>
 </AppProvider>
-
-<div style="display:none">
-	{#each locales as locale (locale)}
-		<a href={localizeHref(page.url.pathname, { locale })} data-sveltekit-reload>{locale}</a>
-	{/each}
-</div>

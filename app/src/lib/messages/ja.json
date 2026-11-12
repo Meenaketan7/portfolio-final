@@ -15,5 +15,10 @@
 	"error_home": "ホームに戻る",
 	"error_retry": "もう一度試す",
 	"network_offline": "オフラインです。読み込み済みのページは引き続き利用できます。通信が必要な操作には接続が必要です。",
-	"loading": "読み込み中"
+	"loading": "読み込み中",
+	"blog_title": "ブログ",
+	"blog_description": "公開された記事や知見をお読みください。",
+	"projects_title": "プロジェクト",
+	"projects_description": "公開されたプロジェクトとその詳細をご覧ください。",
+	"content_more": "もっと見る"
 }

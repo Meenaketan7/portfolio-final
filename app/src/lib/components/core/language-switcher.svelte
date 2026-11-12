@@ -2,8 +2,10 @@
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import LanguagesIcon from '@lucide/svelte/icons/languages';
 	import { m } from '#lib/paraglide/messages.js';
-	import { getLocale, isLocale, locales, setLocale, type Locale } from '#lib/paraglide/runtime.js';
+	import { getLocale, isLocale, locales, type Locale } from '#lib/paraglide/runtime.js';
+	import type { SeoData } from '#lib/seo/types.js';
 	import { cn } from '#lib/utils/index.js';
+	import { languageTarget } from './language-target.js';
 
 	const languageNames: Record<Locale, string> = {
 		en: 'English',
@@ -14,13 +16,17 @@
 		ja: '日本語'
 	};
 
-	let { class: className }: { class?: string } = $props();
+	let {
+		class: className,
+		pathname = '/',
+		alternates
+	}: { class?: string; pathname?: string; alternates?: SeoData['alternates'] } = $props();
 
 	function changeLanguage(event: Event) {
 		const locale = (event.currentTarget as HTMLSelectElement).value;
 
 		if (isLocale(locale) && locale !== getLocale()) {
-			setLocale(locale);
+			window.location.assign(languageTarget(locale, pathname, alternates));
 		}
 	}
 </script>

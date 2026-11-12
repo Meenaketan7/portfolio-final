@@ -15,6 +15,7 @@ const requestHeaders = [
 
 const responseHeaders = [
 	'cache-control',
+	'content-language',
 	'content-type',
 	'etag',
 	'last-modified',

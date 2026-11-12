@@ -14,7 +14,7 @@
 </script>
 
 <svelte:head>
-	<title>{title} | Portfolio</title>
+	<title>{title}</title>
 </svelte:head>
 
 <main class="relative isolate min-h-svh overflow-hidden bg-background text-foreground">
