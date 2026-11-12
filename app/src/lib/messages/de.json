@@ -15,5 +15,10 @@
 	"error_home": "Zur Startseite",
 	"error_retry": "Erneut versuchen",
 	"network_offline": "Offline. Geladene Seiten bleiben verfügbar; Netzwerkaktionen benötigen eine Verbindung.",
-	"loading": "Lädt"
+	"loading": "Lädt",
+	"blog_title": "Blog",
+	"blog_description": "Lesen Sie veröffentlichte Artikel und Einblicke.",
+	"projects_title": "Projekte",
+	"projects_description": "Entdecken Sie veröffentlichte Projekte und ihre Details.",
+	"content_more": "Mehr"
 }

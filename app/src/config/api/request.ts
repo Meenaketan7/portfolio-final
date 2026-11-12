@@ -1,4 +1,5 @@
 import { apiConfig } from '#config/api/api-config.js';
+import type { Locale } from '#lib/paraglide/runtime.js';
 
 export type ApiMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -8,6 +9,8 @@ export type ApiRequestOptions = {
 	fetcher?: typeof fetch;
 	signal?: AbortSignal;
 	headers?: HeadersInit;
+	/** Explicit page locale for a language-dependent API response. */
+	locale?: Locale;
 };
 
 export class ApiError extends Error {
@@ -33,9 +36,10 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
 		throw new TypeError('API paths must start with one slash');
 	}
 
-	const { method = 'GET', data, fetcher = fetch, signal, headers: customHeaders } = options;
+	const { method = 'GET', data, fetcher = fetch, signal, headers: customHeaders, locale } = options;
 	const headers = new Headers(customHeaders);
 	headers.set('accept', 'application/json');
+	if (locale) headers.set('accept-language', new Intl.Locale(locale).toString());
 	if (data !== undefined) headers.set('content-type', 'application/json');
 
 	let response: Response;

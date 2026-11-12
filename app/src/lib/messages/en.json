@@ -15,5 +15,10 @@
 	"error_home": "Go home",
 	"error_retry": "Try again",
 	"network_offline": "You're offline. Loaded pages remain available; network actions need a connection.",
-	"loading": "Loading"
+	"loading": "Loading",
+	"blog_title": "Blog",
+	"blog_description": "Read published articles and insights.",
+	"projects_title": "Projects",
+	"projects_description": "Explore published projects and their details.",
+	"content_more": "More"
 }

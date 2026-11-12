@@ -15,5 +15,10 @@
 	"error_home": "Volver al inicio",
 	"error_retry": "Reintentar",
 	"network_offline": "Sin conexión. Las páginas cargadas siguen disponibles; las acciones de red requieren conexión.",
-	"loading": "Cargando"
+	"loading": "Cargando",
+	"blog_title": "Blog",
+	"blog_description": "Lee artículos e ideas publicados.",
+	"projects_title": "Proyectos",
+	"projects_description": "Explora proyectos publicados y sus detalles.",
+	"content_more": "Más"
 }
