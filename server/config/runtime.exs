@@ -1,128 +1,173 @@
 import Config
 
+boolean = fn variable, default ->
+  case System.get_env(variable) do
+    nil -> default
+    "true" -> true
+    "false" -> false
+    _value -> raise ArgumentError, "#{variable} must be true or false when set"
+  end
+end
+
 {server_role, repos} =
   case System.get_env("SERVER_ROLE", "all") do
     "all" -> {:all, [Server.Identity.Repo, Server.Content.Repo]}
     "identity" -> {:identity, [Server.Identity.Repo]}
     "content" -> {:content, [Server.Content.Repo]}
-    value -> raise "Invalid SERVER_ROLE=#{inspect(value)}; use all, identity, or content"
+    _value -> raise ArgumentError, "SERVER_ROLE must be all, identity, or content"
   end
 
-config :server, server_role: server_role, ecto_repos: repos
+# Keep existing SERVER_ROLE-only commands working when no mode is specified.
+microservices = boolean.("MICROSERVICES", server_role != :all)
 
-# config/runtime.exs is executed for all environments, including
-# during releases. It is executed after compilation and before the
-# system starts, so it is typically used to load production configuration
-# and secrets from environment variables or elsewhere. Do not define
-# any compile-time configuration in here, as it won't be applied.
-# The block below contains prod specific runtime configuration.
-
-# ## Using releases
-#
-# If you use `mix release`, you need to explicitly enable the server
-# by passing the PHX_SERVER=true when you start it:
-#
-#     PHX_SERVER=true bin/server start
-#
-# This app is named `server`, so the Phoenix release generator's default
-# `bin/server` helper would conflict with the release executable. Start the
-# release directly with the command above.
-if System.get_env("PHX_SERVER") do
-  config :server, ServerWeb.Endpoint, server: true
+unless microservices == (server_role != :all) do
+  raise ArgumentError,
+        "MICROSERVICES=false requires SERVER_ROLE=all; MICROSERVICES=true requires SERVER_ROLE=identity or content"
 end
 
-config :server, ServerWeb.Endpoint,
-  http: [port: String.to_integer(System.get_env("PORT", "4000"))]
+config :server, server_role: server_role, microservices: microservices, ecto_repos: repos
+
+# An unset flag preserves mix phx.server and the existing test configuration.
+case boolean.("PHX_SERVER", nil) do
+  nil -> :ok
+  enabled -> config :server, ServerWeb.Endpoint, server: enabled
+end
+
+default_port = if config_env() == :test, do: "4002", else: "4000"
+
+port =
+  case Integer.parse(System.get_env("PORT", default_port)) do
+    {value, ""} when value in 1..65_535 -> value
+    _value -> raise ArgumentError, "PORT must be an integer between 1 and 65535"
+  end
+
+http =
+  case System.get_env("PHX_IP") do
+    nil ->
+      if config_env() == :prod, do: [port: port, ip: {0, 0, 0, 0}], else: [port: port]
+
+    value ->
+      case :inet.parse_strict_address(String.to_charlist(value)) do
+        {:ok, address} -> [port: port, ip: address]
+        {:error, _reason} -> raise ArgumentError, "PHX_IP must be an IPv4 or IPv6 address"
+      end
+  end
+
+config :server, ServerWeb.Endpoint, http: http
 
 if config_env() == :prod do
-  pool_size = String.to_integer(System.get_env("POOL_SIZE") || "1")
+  pool_size =
+    case Integer.parse(System.get_env("POOL_SIZE", "1")) do
+      {value, ""} when value > 0 -> value
+      _value -> raise ArgumentError, "POOL_SIZE must be a positive integer"
+    end
 
-  if Server.Identity.Repo in repos do
-    config :server, Server.Identity.Repo,
-      database: System.fetch_env!("IDENTITY_DATABASE_PATH"),
-      pool_size: pool_size
+  database_path = fn variable ->
+    value = System.get_env(variable)
+
+    unless is_binary(value) and value != "" and value == String.trim(value) and
+             Path.type(value) == :absolute and not String.ends_with?(value, "/") do
+      raise ArgumentError, "#{variable} must be an absolute SQLite file path"
+    end
+
+    path = Path.expand(value)
+
+    file_identity =
+      case File.stat(path) do
+        {:ok, %File.Stat{type: :regular} = stat} ->
+          {stat.major_device, stat.minor_device, stat.inode}
+
+        {:error, :enoent} ->
+          nil
+
+        _result ->
+          raise ArgumentError, "#{variable} must refer to a regular file or a new file path"
+      end
+
+    {path, file_identity}
   end
 
-  if Server.Content.Repo in repos do
-    config :server, Server.Content.Repo,
-      database: System.fetch_env!("CONTENT_DATABASE_PATH"),
-      pool_size: pool_size
+  databases =
+    for {repo, variable} <- [
+          {Server.Identity.Repo, "IDENTITY_DATABASE_PATH"},
+          {Server.Content.Repo, "CONTENT_DATABASE_PATH"}
+        ],
+        repo in repos do
+      {path, file_identity} = database_path.(variable)
+      {repo, path, file_identity}
+    end
+
+  paths = for {_repo, path, _identity} <- databases, do: path
+  file_identities = for {_repo, _path, identity} <- databases, identity != nil, do: identity
+
+  if length(Enum.uniq(paths)) != length(paths) or
+       length(Enum.uniq(file_identities)) != length(file_identities) do
+    raise ArgumentError,
+          "IDENTITY_DATABASE_PATH and CONTENT_DATABASE_PATH must refer to different files"
   end
 
-  # The secret key base is used to sign/encrypt cookies and other secrets.
-  # A default value is used in config/dev.exs and config/test.exs but you
-  # want to use a different value for prod and you most likely don't want
-  # to check this value into version control, so we use an environment
-  # variable instead.
+  sidecar_paths = for path <- paths, suffix <- ["-journal", "-wal", "-shm"], do: path <> suffix
+
+  if Enum.any?(paths, &(&1 in sidecar_paths)) do
+    raise ArgumentError, "A database path must not overlap another database's SQLite sidecar path"
+  end
+
+  for {repo, path, _identity} <- databases do
+    config :server, repo, database: path, pool_size: pool_size
+  end
+
+  secret =
+    case {System.get_env("SECRET_KEY_BASE"), System.get_env("SECRET_KEY_BASE_FILE")} do
+      {value, nil} ->
+        value
+
+      {nil, path} ->
+        with true <- path != "" and Path.type(path) == :absolute,
+             true <- File.regular?(path),
+             {:ok, contents} <- File.read(path) do
+          String.trim_trailing(contents)
+        else
+          _result ->
+            raise ArgumentError,
+                  "SECRET_KEY_BASE_FILE must be an absolute path to a readable regular file"
+        end
+
+      {_value, _path} ->
+        raise ArgumentError, "Set only one of SECRET_KEY_BASE or SECRET_KEY_BASE_FILE"
+    end
+
   secret_key_base =
-    System.get_env("SECRET_KEY_BASE") ||
-      raise """
-      environment variable SECRET_KEY_BASE is missing.
-      You can generate one by calling: mix phx.gen.secret
-      """
+    case secret do
+      value when is_binary(value) and byte_size(value) >= 64 ->
+        value
 
-  host = System.get_env("PHX_HOST") || "example.com"
+      _value ->
+        raise ArgumentError,
+              "SECRET_KEY_BASE must be at least 64 bytes; generate one with mix phx.gen.secret"
+    end
 
-  config :server, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
+  host =
+    with value when is_binary(value) and value != "" <- System.get_env("PHX_HOST"),
+         {:ok, %URI{host: parsed_host, userinfo: nil, path: path, query: nil, fragment: nil}} <-
+           URI.new("https://" <> value),
+         true <- is_binary(parsed_host) and parsed_host != "" and path in [nil, ""],
+         true <- value == parsed_host or value == "[#{parsed_host}]" do
+      parsed_host
+    else
+      _value ->
+        raise ArgumentError,
+              "PHX_HOST is required and must be a hostname without a scheme, port, or path"
+    end
+
+  dns_cluster_query =
+    case System.get_env("DNS_CLUSTER_QUERY") do
+      nil -> nil
+      value -> if String.trim(value) == "", do: nil, else: String.trim(value)
+    end
+
+  config :server, :dns_cluster_query, dns_cluster_query
 
   config :server, ServerWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
-    http: [
-      # Enable IPv6 and bind on all interfaces.
-      # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
-      # See the documentation on https://bandit.hexdocs.pm/Bandit.html#t:options/0
-      # for details about using IPv6 vs IPv4 and loopback vs public addresses.
-      ip: {0, 0, 0, 0, 0, 0, 0, 0}
-    ],
     secret_key_base: secret_key_base
-
-  # ## SSL Support
-  #
-  # To get SSL working, you will need to add the `https` key
-  # to your endpoint configuration:
-  #
-  #     config :server, ServerWeb.Endpoint,
-  #       https: [
-  #         ...,
-  #         port: 443,
-  #         cipher_suite: :strong,
-  #         keyfile: System.get_env("SOME_APP_SSL_KEY_PATH"),
-  #         certfile: System.get_env("SOME_APP_SSL_CERT_PATH")
-  #       ]
-  #
-  # The `cipher_suite` is set to `:strong` to support only the
-  # latest and more secure SSL ciphers. This means old browsers
-  # and clients may not be supported. You can set it to
-  # `:compatible` for wider support.
-  #
-  # `:keyfile` and `:certfile` expect an absolute path to the key
-  # and cert in disk or a relative path inside priv, for example
-  # "priv/ssl/server.key". For all supported SSL configuration
-  # options, see https://plug.hexdocs.pm/Plug.SSL.html#configure/1
-  #
-  # We also recommend setting `force_ssl` in your config/prod.exs,
-  # ensuring no data is ever sent via http, always redirecting to https:
-  #
-  #     config :server, ServerWeb.Endpoint,
-  #       force_ssl: [hsts: true]
-  #
-  # Check `Plug.SSL` for all available options in `force_ssl`.
-
-  # ## Configuring the mailer
-  #
-  # In production you need to configure the mailer to use a different adapter.
-  # Here is an example configuration for Mailgun:
-  #
-  #     config :server, Server.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
-  #
-  # Most non-SMTP adapters require an API client. Swoosh supports Req, Hackney,
-  # and Finch out-of-the-box. This configuration is typically done at
-  # compile-time in your config/prod.exs:
-  #
-  #     config :swoosh, :api_client, Swoosh.ApiClient.Req
-  #
-  # See https://swoosh.hexdocs.pm/Swoosh.html#module-installation for details.
 end

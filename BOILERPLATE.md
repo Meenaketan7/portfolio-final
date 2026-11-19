@@ -2,7 +2,7 @@
 
 This document records the current frontend setup, the commands needed to run it, and the planned SEO and backend work. The SvelteKit app is in `app/`, and the Phoenix/SQLite backend scaffold is in `server/`. The repository has a root Bun package for Git hooks and a separate Bun package in `app/`; it is not configured as a Bun workspace.
 
-Follow [the backend and Docker implementation plan](./BACKEND_PLAN.md) for the agreed architecture, deployment modes, quality gates, environments, and implementation checklist. Those planned features are not yet implemented.
+Follow [the backend and Docker implementation plan](./BACKEND_PLAN.md) for the agreed architecture, deployment modes, quality gates, environments, and implementation checklist. Runtime configuration, health checks, shared API errors, and development API documentation are implemented. See [server/README.md](./server/README.md) for setup and the API reference.
 
 ## Run the frontend
 

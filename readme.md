@@ -1,6 +1,6 @@
 # Portfolio
 
-This is my personal portfolio project. The browser-facing app is a server-rendered SvelteKit frontend in `app/`; the API backend is Phoenix with SQLite in `server/`. The site is still being built: the frontend foundation is in place, but several pages are placeholders and the backend has no application API endpoints yet.
+This is my personal portfolio project. The browser-facing app is a server-rendered SvelteKit frontend in `app/`; the API backend is Phoenix with SQLite in `server/`. The site is still being built: the frontend foundation is in place, but several pages are placeholders and the backend has health endpoints and development API documentation. Business APIs are still planned.
 
 ## Branches
 
@@ -36,6 +36,6 @@ mix setup
 mix phx.server
 ```
 
-Open the local address printed by Vite. The frontend runs without the backend for now. Phoenix listens on `http://localhost:4000` by default but currently has no application API routes, so a request to its `/` path returns 404. Development and test SQLite files live in the ignored `server/data/` directory.
+Open the local address printed by Vite. The frontend runs without the backend for now. Phoenix listens on `http://localhost:4000` by default. Use `/health/live` and `/health/ready` to check the backend, or open `/dev/api` in development to browse the API. The root path returns 404. Development and test SQLite files live in the ignored `server/data/` directory.
 
 The [setup guide](./BOILERPLATE.md) covers the app and its commands. Use [app/SEO.md](./app/SEO.md) when adding portfolio pages. The frontend now builds a Node server with `adapter-node`; set its public HTTPS `ORIGIN` before launch. The [backend plan](./BACKEND_PLAN.md) tracks the remaining API and deployment work.

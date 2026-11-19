@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="csp-nonce" content={@nonce} />
+    <title>Server API Reference</title>
+    <style>body { margin: 0; }</style>
+  </head>
+  <body>
+    <noscript>
+      Enable JavaScript to view the API reference, or
+      <a href="/dev/openapi.json">download the OpenAPI document</a>.
+    </noscript>
+    <div id="app"></div>
+    <script type="module" nonce={@nonce}>
+      import { createApiReference } from
+        'https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.81.0/esm.js';
+
+      createApiReference('#app', {
+        url: '/dev/openapi.json',
+        proxyUrl: '',
+        withDefaultFonts: false,
+      });
+    </script>
+  </body>
+</html>
