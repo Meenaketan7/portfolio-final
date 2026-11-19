@@ -34,9 +34,9 @@ mix setup
 mix phx.server
 ```
 
-The server listens on port 4000 by default. Its root URL and business API paths return 404 because no routes are defined for them yet. Development and test SQLite databases are stored in the automatically created, Git-ignored `server/data/` directory.
+The server listens on port 4000 by default. `GET /health/live` checks HTTP availability, and `GET /health/ready` checks the selected repositories. Open `http://localhost:4000/dev/api` for Scalar or `http://localhost:4000/dev/openapi.json` for the specification. The root URL returns 404 until an application route is added. Development and test SQLite databases are stored in the ignored `server/data/` directory.
 
-The backend has separate Identity and Content Repo modules. `SERVER_ROLE=all` starts both; `SERVER_ROLE=identity` or `SERVER_ROLE=content` starts only the selected Repo. A role guard Plug exists but is not mounted in the router. These settings do not yet provide separate services or role-specific API routes. Run `mix precommit` from `server/` to check formatting, compile, run Credo, and run tests; `mix quality` adds the dependency audit, Dialyzer, and Sobelow. If your Hex installation lacks `mix hex.audit`, update it with `mix local.hex` before running `mix quality`.
+The backend has separate Identity and Content Repo modules. `SERVER_ROLE=all` starts both; `SERVER_ROLE=identity` or `SERVER_ROLE=content` starts only the selected Repo. Versioned domain routers are mounted behind service role guards. Runtime configuration validates mode/role combinations, HTTP settings, production database paths, hostname, and secret sources; see [server/README.md](./server/README.md) for the environment contract. Business APIs, service-to-service authentication, and the Docker launcher remain planned. Run `mix precommit` from `server/` to check formatting, compile, run Credo, and run tests; `mix quality` adds the dependency audit, Dialyzer, and Sobelow. If your Hex installation lacks `mix hex.audit`, update it with `mix local.hex` before running `mix quality`.
 
 ## Frontend setup already present
 

@@ -5,11 +5,33 @@ defmodule ServerWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/api", ServerWeb do
-    pipe_through :api
+  pipeline :identity_api do
+    plug ServerWeb.Plugs.RequireRole, [:all, :identity]
   end
 
-  # Enable LiveDashboard and Swoosh mailbox preview in development
+  pipeline :content_api do
+    plug ServerWeb.Plugs.RequireRole, [:all, :content]
+  end
+
+  scope "/" do
+    pipe_through :api
+
+    forward "/health", ServerWeb.Api.Health.Router
+  end
+
+  scope "/api/v1" do
+    pipe_through [:identity_api, :api]
+
+    forward "/identity", ServerWeb.Api.Identity.Router
+  end
+
+  scope "/api/v1" do
+    pipe_through [:content_api, :api]
+
+    forward "/content", ServerWeb.Api.Content.Router
+  end
+
+  # Enable API documentation, LiveDashboard, and mailbox preview in development
   if Application.compile_env(:server, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
     # it behind authentication and allow only admins to access it.
@@ -24,5 +46,7 @@ defmodule ServerWeb.Router do
       live_dashboard "/dashboard", metrics: ServerWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
+
+    forward "/dev", ServerWeb.ApiDocs.Router
   end
 end

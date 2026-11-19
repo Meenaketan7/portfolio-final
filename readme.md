@@ -30,6 +30,6 @@ mix setup
 mix phx.server
 ```
 
-The placeholder frontend runs without Phoenix. SvelteKit builds a Node server with `adapter-node`, but content pages still need Phoenix routes. Set the public HTTPS `ORIGIN` before launch, and finish deployment and database backups.
+The placeholder frontend runs independently today. Phoenix has two SQLite repositories, role selection, and health endpoints. The development API reference is at `http://localhost:4000/dev/api`. SvelteKit builds with `adapter-node`. API-backed content routes require the planned Phoenix contract, and production still needs a real HTTPS `ORIGIN` and deployment setup.
 
 See [BOILERPLATE.md](./BOILERPLATE.md) for commands, implemented features, customization points, and optional roadmap links. The [frontend](./app/README.md) and [backend](./server/README.md) READMEs cover each package.

@@ -19,7 +19,7 @@ config :server, ServerWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [json: ServerWeb.ErrorJSON],
+    formats: [json: ServerWeb.Errors.ErrorJSON],
     layout: false
   ],
   pubsub_server: Server.PubSub,

@@ -4,6 +4,8 @@ defmodule ServerWeb.Plugs.RequireRole do
 
   import Plug.Conn
 
+  alias ServerWeb.Errors.ErrorJSON
+
   @impl true
   def init(allowed_roles), do: allowed_roles
 
@@ -12,7 +14,9 @@ defmodule ServerWeb.Plugs.RequireRole do
     if Application.fetch_env!(:server, :server_role) in allowed_roles do
       conn
     else
-      body = ServerWeb.ErrorJSON.render("404.json", %{}) |> Jason.encode!()
+      body =
+        ErrorJSON.render("404.json", conn.assigns)
+        |> Jason.encode!()
 
       conn
       |> put_resp_content_type("application/json")

@@ -55,8 +55,11 @@ config :server, ServerWeb.Endpoint,
 # configured to run both http and https servers on
 # different ports.
 
-# Enable dev routes for dashboard and mailbox
+# Enable development API documentation, dashboard, and mailbox routes
 config :server, dev_routes: true
+
+# Refresh the generated document after changes to controller operation definitions.
+config :open_api_spex, :cache_adapter, OpenApiSpex.Plug.NoneCache
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
