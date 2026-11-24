@@ -1,6 +1,7 @@
 import { ORIGIN } from '$app/env/private';
 import { error, redirect } from '@sveltejs/kit';
-import { apiRequest, ApiError, ApiNetworkError } from '#config/api/request.js';
+import { Data, Effect, Result } from 'effect';
+import { apiRequestEffect, type ApiError, type ApiNetworkError } from '#config/api/request.js';
 import { extractLocaleFromUrl, type Locale } from '#lib/paraglide/runtime.js';
 import { HREFLANG, imageUrl, localPageUrl } from '#lib/seo/urls.js';
 import type { SeoData } from '#lib/seo/types.js';
@@ -13,14 +14,35 @@ const segments: Record<ContentKind, string> = {
 	post: 'posts',
 	project: 'projects'
 };
-function apiFailure(reason: unknown): never {
-	if (reason instanceof ApiError) {
-		if (reason.status === 404 || reason.status === 410) throw error(reason.status);
-		if (reason.status === 503 || reason.status === 502) throw error(reason.status);
-		throw error(502, 'Content API failed');
-	}
-	if (reason instanceof ApiNetworkError) throw error(503, 'Content API unavailable');
-	throw reason;
+
+/** The list `cursor` query parameter is empty or too long. */
+class InvalidCursor extends Data.TaggedError('InvalidCursor') {}
+
+/** Phoenix answered with data that does not match the published content contract. */
+class InvalidContent extends Data.TaggedError('InvalidContent') {}
+
+/** The requested slug is outdated; the record now lives at `location`. */
+class MovedContent extends Data.TaggedError('MovedContent')<{ readonly location: string }> {}
+
+type ContentFailure = ApiError | ApiNetworkError | InvalidCursor | InvalidContent | MovedContent;
+
+/** Answers a failed content request with the matching SvelteKit error or redirect. */
+function respondTo(failure: ContentFailure): never {
+	if (failure._tag === 'MovedContent') redirect(308, failure.location);
+	if (failure._tag === 'InvalidCursor') error(400, 'Invalid cursor');
+	if (failure._tag === 'InvalidContent') error(502, 'Content API returned invalid data');
+	if (failure._tag === 'ApiNetworkError') error(503, 'Content API unavailable');
+	if ([404, 410, 502, 503].includes(failure.status)) error(failure.status);
+	error(502, 'Content API failed');
+}
+
+/**
+ * Runs a content program from a `load` function. Typed failures become SvelteKit errors or
+ * redirects; defects (for example an aborted request) reject unchanged.
+ */
+async function runContentLoad<A>(program: Effect.Effect<A, ContentFailure>): Promise<A> {
+	const result = await Effect.runPromise(Effect.result(program));
+	return Result.isSuccess(result) ? result.success : respondTo(result.failure);
 }
 
 function recordSeo(record: PublishedRecord): SeoData {
@@ -67,53 +89,64 @@ function recordSeo(record: PublishedRecord): SeoData {
 	};
 }
 
-export async function loadPublishedRecord(
+const publishedRecord = Effect.fnUntraced(function* (
+	kind: ContentKind,
+	slug: string,
+	url: URL,
+	fetcher: typeof fetch
+) {
+	const locale = extractLocaleFromUrl(url) ?? 'en';
+	const payload = yield* apiRequestEffect<unknown>(
+		`/content/${segments[kind]}/${encodeURIComponent(slug)}`,
+		{ fetcher, locale }
+	);
+	const record = parsePublishedRecord(payload, kind, locale);
+	if (!record) return yield* new InvalidContent();
+	if (record.slug !== slug) {
+		return yield* new MovedContent({
+			location: `${contentPath(kind, locale, record.slug)}${url.search}`
+		});
+	}
+	return { record, seo: recordSeo(record) };
+});
+
+const publishedList = Effect.fnUntraced(function* (
+	kind: Exclude<ContentKind, 'page'>,
+	url: URL,
+	fetcher: typeof fetch,
+	seo: Pick<SeoData, 'title' | 'description'>
+) {
+	const locale = extractLocaleFromUrl(url) ?? 'en';
+	const cursor = url.searchParams.get('cursor');
+	if (cursor !== null && (!cursor || cursor.length > 500)) return yield* new InvalidCursor();
+	const params = new URLSearchParams({ limit: '20' });
+	if (cursor) params.set('cursor', cursor);
+	const payload = yield* apiRequestEffect<unknown>(`/content/${segments[kind]}?${params}`, {
+		fetcher,
+		locale
+	});
+	const list = parsePublishedList(payload, kind, locale);
+	if (!list) return yield* new InvalidContent();
+	return {
+		...list,
+		seo: { ...seo, noindex: cursor !== null || !list.items.length }
+	};
+});
+
+export function loadPublishedRecord(
 	kind: ContentKind,
 	slug: string,
 	url: URL,
 	fetcher: typeof fetch
 ): Promise<{ record: PublishedRecord; seo: SeoData }> {
-	const locale = extractLocaleFromUrl(url) ?? 'en';
-	let payload: unknown;
-	try {
-		payload = await apiRequest<unknown>(`/content/${segments[kind]}/${encodeURIComponent(slug)}`, {
-			fetcher,
-			locale
-		});
-	} catch (reason) {
-		apiFailure(reason);
-	}
-	const record = parsePublishedRecord(payload, kind, locale);
-	if (!record) throw error(502, 'Content API returned invalid data');
-	if (record.slug !== slug)
-		throw redirect(308, `${contentPath(kind, locale, record.slug)}${url.search}`);
-	return { record, seo: recordSeo(record) };
+	return runContentLoad(publishedRecord(kind, slug, url, fetcher));
 }
 
-export async function loadPublishedList(
+export function loadPublishedList(
 	kind: Exclude<ContentKind, 'page'>,
 	url: URL,
 	fetcher: typeof fetch,
 	seo: Pick<SeoData, 'title' | 'description'>
-): Promise<{ items: PublishedSummary[]; nextCursor: string | null; seo: SeoData }> {
-	const locale = extractLocaleFromUrl(url) ?? 'en';
-	const cursor = url.searchParams.get('cursor');
-	if (cursor !== null && (!cursor || cursor.length > 500)) throw error(400, 'Invalid cursor');
-	const params = new URLSearchParams({ limit: '20' });
-	if (cursor) params.set('cursor', cursor);
-	let payload: unknown;
-	try {
-		payload = await apiRequest<unknown>(`/content/${segments[kind]}?${params}`, {
-			fetcher,
-			locale
-		});
-	} catch (reason) {
-		apiFailure(reason);
-	}
-	const list = parsePublishedList(payload, kind, locale);
-	if (!list) throw error(502, 'Content API returned invalid data');
-	return {
-		...list,
-		seo: { ...seo, noindex: cursor !== null || !list.items.length }
-	};
+): Promise<{ items: readonly PublishedSummary[]; nextCursor: string | null; seo: SeoData }> {
+	return runContentLoad(publishedList(kind, url, fetcher, seo));
 }

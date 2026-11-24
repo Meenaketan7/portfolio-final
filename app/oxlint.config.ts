@@ -10,7 +10,9 @@ export default defineConfig({
 	rules: {
 		'eslint/no-unused-vars': 'error',
 		'eslint/no-console': ['error', { allow: ['warn', 'error'] }],
-		'typescript/no-explicit-any': 'error'
+		'typescript/no-explicit-any': 'error',
+		// `_tag` is the discriminant of Effect's tagged errors and data types
+		'eslint/no-underscore-dangle': ['warn', { allow: ['_tag'] }]
 	},
 	env: {
 		builtin: true

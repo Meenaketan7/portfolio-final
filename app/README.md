@@ -12,7 +12,7 @@ For the six-language public-page SEO rules, content API routes, sitemap, and pro
 
 `src/routes/app-provider.svelte` composes the API and store providers. `src/lib/hooks/api/api-provider.svelte` creates a new TanStack Query client per rendered app instance, and `src/lib/hooks/store/store-provider.svelte` owns UI context. Server requests do not share a query cache or mutable UI store. Queries start in the browser; for SSR content, fetch it in a SvelteKit `load` function and pass it as `initialData` to `createQuery`.
 
-API configuration, the request client, and mutation error handling live in `src/config/api/`. Environment definitions live in `src/config/env/env-config.ts`. SvelteKit still discovers `src/env.ts`, so that file re-exports the definitions. Likewise, `src/hooks.ts` and `src/hooks.server.ts` remain small SvelteKit entrypoints while the Paraglide logic lives in `src/lib/hooks/i18n/`.
+API configuration, the request client, and mutation error handling live in `src/config/api/`. The request client is built on [Effect](https://effect.website/docs/v4/getting-started/why-effect): `apiRequestEffect` fails with a typed `ApiError` or `ApiNetworkError`, and `apiRequest` runs it as a Promise for TanStack Query. The API proxy, content loads, and sitemap discovery use Effect too, and the published content contract in `src/lib/hooks/api/content/contract.ts` is defined with Effect `Schema`; see [EFFECT.md](./EFFECT.md) for where to use it and its rules. Environment definitions live in `src/config/env/env-config.ts`. SvelteKit still discovers `src/env.ts`, so that file re-exports the definitions. Likewise, `src/hooks.ts` and `src/hooks.server.ts` remain small SvelteKit entrypoints while the Paraglide logic lives in `src/lib/hooks/i18n/`.
 
 Pass `locale` to `apiRequest` only when an API response depends on the public page's language. The request client sets `Accept-Language` from that explicit locale (`pt-br` becomes `pt-BR`); generic API calls and all-language sitemap discovery omit the option. The same-origin proxy forwards the request header and Phoenix's `Content-Language` and `Vary` response headers.
 
@@ -43,4 +43,4 @@ No authentication endpoint exists yet. The guard therefore returns 401 for prote
 
 ## Tests
 
-All frontend tests live under `tests/`, grouped by feature (`api/`, `routing/`, `store/`, `config/`, `scripts/`, and `components/`). Put each new test in the matching folder rather than beside its source file. Run the full suite with `bun run test`; component tests use Playwright Chromium through Vitest.
+All frontend tests live under `tests/`, grouped by feature (`api/`, `content/`, `seo/`, `routing/`, `store/`, `config/`, `scripts/`, and `components/`). Put each new test in the matching folder rather than beside its source file. Run the full suite with `bun run test`; component tests use Playwright Chromium through Vitest.

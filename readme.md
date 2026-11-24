@@ -2,7 +2,7 @@
 
 This `boiler-plate` branch is a starter for SvelteKit, Phoenix, and SQLite. Clone this branch for a new project. The `main` branch contains the portfolio.
 
-The frontend uses Bun, TypeScript, Tailwind CSS, shadcn-svelte, Paraglide, and TanStack Query. It starts with placeholder pages. Phoenix content routes and authentication are still planned.
+The frontend uses Bun, TypeScript, Tailwind CSS, shadcn-svelte, Paraglide, TanStack Query, and Effect. It starts with placeholder pages. Phoenix content routes and authentication are still planned.
 
 ```sh
 git clone --branch boiler-plate --single-branch https://github.com/Meenaketan7/portfolio-final.git my-project

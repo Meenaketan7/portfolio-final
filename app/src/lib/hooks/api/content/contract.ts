@@ -1,36 +1,30 @@
+import { Option, Schema } from 'effect';
 import { locales, type Locale } from '#lib/paraglide/runtime.js';
-import type { SeoImage } from '#lib/seo/types.js';
-import type {
-	ContentBlock,
-	ContentKind,
-	DiscoveryEntry,
-	PublishedRecord,
-	PublishedSummary
-} from './types.js';
 
-const kinds = ['page', 'post', 'project'] as const;
+// The published content contract with Phoenix. Only server modules import this file, because
+// Schema adds about 15 KB gzipped; browser code imports the derived types from ./types.js.
+// Decoding drops fields the contract does not list.
 
-const object = (value: unknown): value is Record<string, unknown> =>
-	value !== null && typeof value === 'object' && !Array.isArray(value);
-const text = (value: unknown): value is string =>
-	typeof value === 'string' && value.trim().length > 0;
-const locale = (value: unknown): value is Locale =>
-	typeof value === 'string' && locales.some((item) => item === value);
-const kind = (value: unknown): value is ContentKind =>
-	typeof value === 'string' && kinds.some((item) => item === value);
-const slug = (value: unknown): value is string => {
-	if (
-		!text(value) ||
-		value.length > 200 ||
-		value.trim() !== value ||
-		/[\\/?#\s]/.test(value) ||
-		[...value].some(
-			(character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127
-		) ||
-		value === '.' ||
-		value === '..'
-	)
+const isLocale = (value: string): value is Locale => locales.some((item) => item === value);
+
+const isControlCharacter = (character: string) => {
+	const code = character.charCodeAt(0);
+	return code < 32 || code === 127;
+};
+
+/** Root-relative paths, or HTTPS URLs without credentials. */
+const isPublicImageUrl = (url: string) => {
+	if (url.startsWith('/') && !url.startsWith('//') && !url.includes('\\')) return true;
+	try {
+		const parsed = new URL(url);
+		return parsed.protocol === 'https:' && !parsed.username && !parsed.password;
+	} catch {
 		return false;
+	}
+};
+
+/** encodeURIComponent throws on lone UTF-16 surrogates. */
+const isEncodable = (value: string) => {
 	try {
 		encodeURIComponent(value);
 		return true;
@@ -38,122 +32,144 @@ const slug = (value: unknown): value is string => {
 		return false;
 	}
 };
-const cursor = (value: unknown): value is string | null =>
-	value === null || (text(value) && value.length <= 500);
-const timestamp = (value: unknown): value is string =>
-	typeof value === 'string' &&
-	/^\d{4}-\d\d-\d\dT.*Z$/.test(value) &&
-	!Number.isNaN(Date.parse(value));
-const image = (value: unknown): value is SeoImage | null => {
-	if (value === null) return true;
-	if (!object(value) || !text(value.url) || !text(value.alt)) return false;
-	if (value.url.startsWith('/') && !value.url.startsWith('//') && !value.url.includes('\\'))
-		return true;
-	try {
-		const url = new URL(value.url);
-		return url.protocol === 'https:' && !url.username && !url.password;
-	} catch {
-		return false;
-	}
-};
 
-const summary = (value: unknown): value is PublishedSummary =>
-	object(value) &&
-	text(value.id) &&
-	kind(value.kind) &&
-	locale(value.locale) &&
-	slug(value.slug) &&
-	text(value.title) &&
-	text(value.summary) &&
-	image(value.image) &&
-	timestamp(value.publishedAt) &&
-	timestamp(value.updatedAt);
+/** A string with at least one non-space character. */
+const Text = Schema.String.check(Schema.makeFilter((value: string) => value.trim().length > 0));
 
-const block = (value: unknown): value is ContentBlock => {
-	if (!object(value)) return false;
-	if (value.type === 'heading') return [2, 3].includes(value.level as number) && text(value.text);
-	if (value.type === 'paragraph') return text(value.text);
-	if (value.type === 'unorderedList')
-		return Array.isArray(value.items) && value.items.length > 0 && value.items.every(text);
-	return false;
-};
+/** One URL path segment: no separators, whitespace, control characters, or dot segments. */
+const Slug = Text.check(
+	Schema.isMaxLength(200),
+	Schema.isTrimmed(),
+	Schema.makeFilter(
+		(value: string) =>
+			!/[\\/?#\s]/.test(value) &&
+			![...value].some(isControlCharacter) &&
+			value !== '.' &&
+			value !== '..' &&
+			isEncodable(value)
+	)
+);
 
-const translations = (value: unknown): value is PublishedRecord['translations'] =>
-	object(value) &&
-	Object.entries(value).every(
-		([key, entry]) =>
-			locale(key) && object(entry) && slug(entry.slug) && typeof entry.indexable === 'boolean'
-	);
+/** A UTC ISO 8601 timestamp such as 2026-11-10T00:00:00Z. */
+const Timestamp = Schema.String.check(
+	Schema.makeFilter(
+		(value: string) => /^\d{4}-\d\d-\d\dT.*Z$/.test(value) && !Number.isNaN(Date.parse(value))
+	)
+);
 
+const Cursor = Schema.NullOr(Text.check(Schema.isMaxLength(500)));
+
+const Image = Schema.NullOr(
+	Schema.Struct({ url: Text.check(Schema.makeFilter(isPublicImageUrl)), alt: Text })
+);
+
+const Translation = Schema.Struct({ slug: Slug, indexable: Schema.Boolean });
+
+/** Published language versions keyed by locale; any other key makes the payload invalid. */
+const Translations = Schema.Record(Schema.String, Translation).pipe(
+	Schema.refine((value): value is { readonly [L in Locale]?: typeof Translation.Type } =>
+		Object.keys(value).every(isLocale)
+	)
+);
+
+export const ContentKind = Schema.Literals(['page', 'post', 'project']);
+export type ContentKind = typeof ContentKind.Type;
+
+const ContentLocale = Schema.Literals(locales);
+
+export const ContentBlock = Schema.Union([
+	Schema.Struct({ type: Schema.Literal('heading'), level: Schema.Literals([2, 3]), text: Text }),
+	Schema.Struct({ type: Schema.Literal('paragraph'), text: Text }),
+	Schema.Struct({ type: Schema.Literal('unorderedList'), items: Schema.NonEmptyArray(Text) })
+]);
+export type ContentBlock = typeof ContentBlock.Type;
+
+export const PublishedSummary = Schema.Struct({
+	id: Text,
+	kind: ContentKind,
+	locale: ContentLocale,
+	slug: Slug,
+	title: Text,
+	summary: Text,
+	image: Image,
+	publishedAt: Timestamp,
+	updatedAt: Timestamp
+});
+export type PublishedSummary = typeof PublishedSummary.Type;
+
+export const PublishedRecord = Schema.Struct({
+	...PublishedSummary.fields,
+	bodyBlocks: Schema.NonEmptyArray(ContentBlock),
+	author: Schema.NullOr(Schema.Struct({ name: Text, url: Schema.optional(Text) })),
+	seo: Schema.Struct({ title: Text, description: Text, image: Image, indexable: Schema.Boolean }),
+	translations: Translations
+}).check(
+	// Posts need an author for their BlogPosting structured data
+	Schema.makeFilter((record) => record.kind !== 'post' || record.author !== null),
+	// The record's own language version must match its slug and indexing decision
+	Schema.makeFilter((record) => {
+		const self = record.translations[record.locale];
+		return self?.slug === record.slug && self.indexable === record.seo.indexable;
+	})
+);
+export type PublishedRecord = typeof PublishedRecord.Type;
+
+export const DiscoveryEntry = Schema.Struct({
+	kind: ContentKind,
+	locale: ContentLocale,
+	slug: Slug,
+	updatedAt: Timestamp,
+	translations: Translations
+}).check(
+	// Discovery lists only indexable versions, each under its own slug
+	Schema.makeFilter((entry) => {
+		const self = entry.translations[entry.locale];
+		return self?.slug === entry.slug && self.indexable;
+	})
+);
+export type DiscoveryEntry = typeof DiscoveryEntry.Type;
+
+const PublishedList = Schema.Struct({
+	items: Schema.Array(PublishedSummary).check(Schema.isMaxLength(20)),
+	nextCursor: Cursor
+});
+
+const DiscoveryPage = Schema.Struct({
+	items: Schema.Array(DiscoveryEntry).check(Schema.isMaxLength(200)),
+	nextCursor: Cursor
+});
+
+const decodeRecord = Schema.decodeUnknownOption(PublishedRecord);
+const decodeList = Schema.decodeUnknownOption(PublishedList);
+const decodeDiscoveryPage = Schema.decodeUnknownOption(DiscoveryPage);
+
+/** A published record of the requested kind and language, or null if the payload is invalid. */
 export function parsePublishedRecord(
 	value: unknown,
 	expectedKind: ContentKind,
 	expectedLocale: Locale
 ): PublishedRecord | null {
-	if (!summary(value) || value.kind !== expectedKind || value.locale !== expectedLocale)
-		return null;
-	const details = value as unknown as Record<string, unknown>;
-	if (
-		!Array.isArray(details.bodyBlocks) ||
-		!details.bodyBlocks.length ||
-		!details.bodyBlocks.every(block)
-	)
-		return null;
-	if (
-		details.author !== null &&
-		(!object(details.author) ||
-			!text(details.author.name) ||
-			(details.author.url !== undefined && !text(details.author.url)))
-	)
-		return null;
-	if (expectedKind === 'post' && details.author === null) return null;
-	if (
-		!object(details.seo) ||
-		!text(details.seo.title) ||
-		!text(details.seo.description) ||
-		!image(details.seo.image) ||
-		typeof details.seo.indexable !== 'boolean' ||
-		!translations(details.translations)
-	)
-		return null;
-	const self = details.translations[expectedLocale];
-	if (!self || self.slug !== value.slug || self.indexable !== details.seo.indexable) return null;
-	return value as PublishedRecord;
+	return decodeRecord(value).pipe(
+		Option.filter((record) => record.kind === expectedKind && record.locale === expectedLocale),
+		Option.getOrNull
+	);
 }
 
+/** One page of a published list in the requested kind and language, or null if invalid. */
 export function parsePublishedList(
 	value: unknown,
 	expectedKind: ContentKind,
 	expectedLocale: Locale
-): { items: PublishedSummary[]; nextCursor: string | null } | null {
-	if (!object(value) || !Array.isArray(value.items) || value.items.length > 20) return null;
-	if (!cursor(value.nextCursor)) return null;
-	if (
-		!value.items.every(
-			(entry) => summary(entry) && entry.kind === expectedKind && entry.locale === expectedLocale
-		)
-	)
-		return null;
-	return { items: value.items, nextCursor: value.nextCursor };
+): typeof PublishedList.Type | null {
+	return decodeList(value).pipe(
+		Option.filter(({ items }) =>
+			items.every((item) => item.kind === expectedKind && item.locale === expectedLocale)
+		),
+		Option.getOrNull
+	);
 }
 
-export function parseDiscoveryPage(
-	value: unknown
-): { items: DiscoveryEntry[]; nextCursor: string | null } | null {
-	if (!object(value) || !Array.isArray(value.items) || value.items.length > 200) return null;
-	if (!cursor(value.nextCursor)) return null;
-	for (const entry of value.items) {
-		if (
-			!object(entry) ||
-			!kind(entry.kind) ||
-			!locale(entry.locale) ||
-			!slug(entry.slug) ||
-			!timestamp(entry.updatedAt) ||
-			!translations(entry.translations)
-		)
-			return null;
-		const self = entry.translations[entry.locale];
-		if (!self || self.slug !== entry.slug || !self.indexable) return null;
-	}
-	return { items: value.items as DiscoveryEntry[], nextCursor: value.nextCursor };
+/** One page of sitemap discovery entries, or null if the payload is invalid. */
+export function parseDiscoveryPage(value: unknown): typeof DiscoveryPage.Type | null {
+	return Option.getOrNull(decodeDiscoveryPage(value));
 }
