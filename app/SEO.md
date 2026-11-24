@@ -1,6 +1,6 @@
 # SEO in the SvelteKit starter
 
-This starter has the code needed to render public pages and their search metadata on the server. It has no real domain or published content. The home, About, and Contact placeholders are marked `noindex`. Blog, project, and content pages need the Phoenix API described below before they can serve real pages.
+This starter has the code needed to render public pages and their search metadata on the server. It has no real domain or published content. The home, About, and Contact placeholders are marked `noindex`; the home page still has a title and description in every language. Blog, project, and content pages need the Phoenix API described below before they can serve real pages.
 
 Search engines still decide what to crawl and index. Good metadata and a sitemap do not promise a ranking.
 
@@ -24,9 +24,9 @@ export const load: PageLoad = ({ url }) => {
 };
 ```
 
-Add the message keys and visible copy for every language you publish. The title and description should describe that page, not just the site. If either is missing, or if `noindex: true` is set, the layout emits `noindex`. It also does this when `ORIGIN` is missing. Such pages receive no canonical URL or structured data.
+Add the message keys and visible copy for every language you publish. The title and description should describe that page, not just the site. The layout writes the title and the description whenever they exist. If either is missing, or if `noindex: true` is set, it also emits `noindex`. It does this when `ORIGIN` is missing too. Such pages receive no canonical URL or structured data.
 
-When a static route has real content and is ready for search, add its path and published locales to [`src/config/seo/static-pages.ts`](src/config/seo/static-pages.ts). That registry starts empty so the sitemap does not advertise placeholder pages. Use the `alternates` field only for live translations of the same page. The language switcher also uses this map when translated slugs differ.
+When a static route has real content and is ready for search, add its path and published locales to [`src/config/seo/static-pages.ts`](src/config/seo/static-pages.ts), and return `alternates: staticAlternates('/your-path')` (from `#lib/seo/urls.js`) in its load. The sitemap reads the same registry through `staticAlternates`, so the page's language links and its sitemap entry always agree. That registry starts empty so the sitemap does not advertise placeholder pages. The home page's load already returns `staticAlternates('/')` and `noindex: true`; remove `noindex` when you register `/`. Use the `alternates` field only for live translations of the same page. The language switcher also uses this map when translated slugs differ.
 
 ## Publish content from Phoenix
 
@@ -52,9 +52,9 @@ The API path never gets a language prefix. For example, a request for `/ja/blog/
 
 ## Sitemap, robots, and page data
 
-`/sitemap.xml` combines the static registry with Phoenix's discovery feed. It includes each published canonical URL, its update date, and the same published language links as the page. It also includes nonempty blog and project list roots. If discovery fails, the endpoint returns 503 so it does not publish a partial sitemap. The endpoint currently has a limit of 50,000 URLs and 50 MB. Split it into several sitemaps if the project grows beyond that. `/robots.txt` points to the sitemap when `ORIGIN` is set.
+`/sitemap.xml` combines the static registry with Phoenix's discovery feed. It includes each published canonical URL, its update date, and the same published language links as the page. It also includes nonempty blog and project list roots. The server keeps the last complete sitemap in memory for an hour, and concurrent requests share one rebuild, so repeated requests do not walk the discovery feed again. If a rebuild fails, the endpoint keeps serving the last complete sitemap; it returns 503 only when it has none yet, so it never publishes a partial sitemap. The endpoint currently has a limit of 50,000 URLs and 50 MB. Split it into several sitemaps if the project grows beyond that. `/robots.txt` points to the sitemap when `ORIGIN` is set. Both responses send `Cache-Control: public, max-age=3600`.
 
-Published articles can include `BlogPosting` JSON-LD. Projects use `CreativeWork`; other content pages use `WebPage`. The fields must match the visible page. Supply a real public image and alt text if a page needs a large social preview. Add business, person, or organization data only when the project has the real facts for it.
+Published articles can include `BlogPosting` JSON-LD. Projects use `CreativeWork`; other content pages use `WebPage`. The author is a `Person` with the author's page as `url` when Phoenix sends one. The fields must match the visible page. Supply a real public image and alt text if a page needs a large social preview. Add business, person, or organization data only when the project has the real facts for it.
 
 ## Before launch
 

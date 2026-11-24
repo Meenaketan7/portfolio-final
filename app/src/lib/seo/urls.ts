@@ -1,4 +1,5 @@
-import type { Locale } from '#lib/paraglide/runtime.js';
+import { localizeHref, type Locale } from '#lib/paraglide/runtime.js';
+import { staticPublicPages } from '#config/seo/static-pages.js';
 
 export const HREFLANG: Record<Locale, string> = {
 	en: 'en',
@@ -47,4 +48,16 @@ export function safeJsonLd(value: Record<string, unknown>): string | null {
 export function jsonLdScript(value: Record<string, unknown>): string | null {
 	const json = safeJsonLd(value);
 	return json ? `<script type="application/ld+json">${json}</script>` : null;
+}
+
+/**
+ * Language versions of a page registered in `staticPublicPages`, e.g. `{ en: '/about', de: '/de/about' }`.
+ * Both the sitemap and the page's own `load` use it, so their language links always agree.
+ */
+export function staticAlternates(path: string): Partial<Record<Locale, string>> | undefined {
+	const entry = staticPublicPages.find((item) => item.path === path);
+	if (!entry) return undefined;
+	return Object.fromEntries(
+		entry.locales.map((locale) => [locale, localizeHref(path, { locale })])
+	);
 }

@@ -7,30 +7,17 @@
 		siteOrigin,
 		pathname
 	}: { seo?: SeoData; siteOrigin?: string | null; pathname: string } = $props();
-	let completeSeo = $derived(
-		typeof seo?.title === 'string' &&
-			typeof seo.description === 'string' &&
-			seo.title.trim() &&
-			seo.description.trim()
-			? {
-					title: seo.title.trim(),
-					description: seo.description.trim(),
-					noindex: seo.noindex,
-					type: seo.type ?? 'website',
-					image: seo.image,
-					alternates: seo.alternates,
-					structuredData: seo.structuredData
-				}
-			: null
-	);
+	// Title and description render whenever they exist; indexing also needs both, plus a known origin
+	let title = $derived(typeof seo?.title === 'string' ? seo.title.trim() : '');
+	let description = $derived(typeof seo?.description === 'string' ? seo.description.trim() : '');
 	let canonical = $derived(siteOrigin ? localPageUrl(siteOrigin, pathname) : null);
-	let indexable = $derived(Boolean(completeSeo && !completeSeo.noindex && canonical));
+	let indexable = $derived(Boolean(title && description && canonical && !seo?.noindex));
 	let socialImage = $derived(
-		completeSeo?.image?.url && siteOrigin ? imageUrl(siteOrigin, completeSeo.image.url) : null
+		seo?.image?.url && siteOrigin ? imageUrl(siteOrigin, seo.image.url) : null
 	);
 	let alternates = $derived(
-		indexable && completeSeo?.alternates && siteOrigin
-			? Object.entries(completeSeo.alternates)
+		indexable && seo?.alternates && siteOrigin
+			? Object.entries(seo.alternates)
 					.map(([locale, path]) => ({
 						locale: HREFLANG[locale as keyof typeof HREFLANG],
 						url: path ? localPageUrl(siteOrigin, path) : null
@@ -40,33 +27,33 @@
 					)
 			: []
 	);
-	let jsonLd = $derived(
-		indexable && completeSeo?.structuredData ? jsonLdScript(completeSeo.structuredData) : null
-	);
+	let jsonLd = $derived(indexable && seo?.structuredData ? jsonLdScript(seo.structuredData) : null);
 </script>
 
 <svelte:head>
-	{#if completeSeo}
-		<title>{completeSeo.title}</title>
-		<meta name="description" content={completeSeo.description} />
+	{#if title}
+		<title>{title}</title>
+	{/if}
+	{#if description}
+		<meta name="description" content={description} />
 	{/if}
 	{#if !indexable}
 		<meta name="robots" content="noindex" />
-	{:else if completeSeo && canonical}
+	{:else if canonical}
 		<link rel="canonical" href={canonical} />
-		<meta property="og:title" content={completeSeo.title} />
-		<meta property="og:description" content={completeSeo.description} />
-		<meta property="og:type" content={completeSeo.type} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content={seo?.type ?? 'website'} />
 		<meta property="og:url" content={canonical} />
 		<meta name="twitter:card" content={socialImage ? 'summary_large_image' : 'summary'} />
-		<meta name="twitter:title" content={completeSeo.title} />
-		<meta name="twitter:description" content={completeSeo.description} />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
 		{#if socialImage}
 			<meta property="og:image" content={socialImage} />
 			<meta name="twitter:image" content={socialImage} />
-			{#if completeSeo.image?.alt}
-				<meta property="og:image:alt" content={completeSeo.image.alt} />
-				<meta name="twitter:image:alt" content={completeSeo.image.alt} />
+			{#if seo?.image?.alt}
+				<meta property="og:image:alt" content={seo.image.alt} />
+				<meta name="twitter:image:alt" content={seo.image.alt} />
 			{/if}
 		{/if}
 		{#each alternates as alternate (alternate.locale)}

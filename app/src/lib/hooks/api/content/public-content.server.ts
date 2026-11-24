@@ -73,7 +73,14 @@ function recordSeo(record: PublishedRecord): SeoData {
 		mainEntityOfPage: canonical
 	};
 	if (record.kind === 'post') structuredData.headline = record.title;
-	if (record.author) structuredData.author = { '@type': 'Person', name: record.author.name };
+	if (record.author) {
+		// Google's Article guidance recommends author.url, a page that identifies the author
+		structuredData.author = {
+			'@type': 'Person',
+			name: record.author.name,
+			...(record.author.url ? { url: record.author.url } : {})
+		};
+	}
 	if (socialImage && ORIGIN) {
 		const url = imageUrl(ORIGIN, socialImage.url);
 		if (url) structuredData.image = url;

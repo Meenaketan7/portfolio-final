@@ -1,8 +1,8 @@
-import { localizeHref, type Locale } from '#lib/paraglide/runtime.js';
+import type { Locale } from '#lib/paraglide/runtime.js';
 import { contentListPath, contentPath } from '#lib/hooks/api/content/content-path.js';
 import type { DiscoveryEntry } from '#lib/hooks/api/content/types.js';
 import { staticPublicPages } from '#config/seo/static-pages.js';
-import { HREFLANG, localPageUrl } from './urls.js';
+import { HREFLANG, localPageUrl, staticAlternates } from './urls.js';
 
 type SitemapItem = {
 	url: string;
@@ -28,11 +28,8 @@ function alternates(
 }
 
 export function staticSitemapItems(origin: string): SitemapItem[] {
-	return staticPublicPages.flatMap(({ path, locales, lastmod }) => {
-		const paths = Object.fromEntries(
-			locales.map((locale) => [locale, localizeHref(path, { locale })])
-		) as Partial<Record<Locale, string>>;
-		const translations = alternates(origin, paths);
+	return staticPublicPages.flatMap(({ path, lastmod }) => {
+		const translations = alternates(origin, staticAlternates(path) ?? {});
 		return translations.map(({ url }) => ({ url, lastmod, alternates: translations }));
 	});
 }

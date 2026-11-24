@@ -20,5 +20,7 @@
 	"blog_description": "公開された記事や知見をお読みください。",
 	"projects_title": "プロジェクト",
 	"projects_description": "公開されたプロジェクトとその詳細をご覧ください。",
-	"content_more": "もっと見る"
+	"content_more": "もっと見る",
+	"home_title": "ホーム",
+	"home_description": "仮のホームページです。公開前にこの説明を置き換えてください。"
 }
