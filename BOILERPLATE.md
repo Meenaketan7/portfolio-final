@@ -36,6 +36,7 @@ Open the local address printed by Vite. The placeholder pages run without Phoeni
 | Theme | Global `ModeWatcher` plus a light/dark/system switcher using `mode-watcher`. |
 | Languages | Paraglide uses stable URLs for English, Spanish, Brazilian Portuguese, German, French, and Japanese. Messages are in `app/src/lib/messages/`. Server hooks set the HTML language and direction; content requests send the URL language in `Accept-Language`. |
 | Global UI | Root layout mounts the theme and language switchers, Sonner toaster, favicon, and a nonblocking offline notice. A thin progress bar tracks navigation, initial active queries, mutations, and registered UI work. |
+| Effects | [Effect](https://effect.website/docs/v4/getting-started/why-effect) 4 runs the API request client, the Phoenix proxy, content loads, and sitemap discovery with typed failures. Effect `Schema` defines the published content contract and its types. TanStack Query and `load` functions use the Promise wrapper `apiRequest`. Rules are in [app/EFFECT.md](./app/EFFECT.md). |
 | Errors | Root `+error.svelte` displays a localized shared error screen and triggers a toast. Separate `/404`, `/500`, and `/default` display pages exist. `app/src/error.html` is the last-resort fallback. |
 | Quality | Oxfmt, Oxlint, `svelte-check`, Vitest browser/server projects, development-only TanStack Query Devtools, Husky, and Conventional Commit validation. |
 

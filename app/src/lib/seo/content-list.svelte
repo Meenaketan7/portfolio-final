@@ -13,7 +13,7 @@
 	}: {
 		kind: Exclude<ContentKind, 'page'>;
 		title: string;
-		items: PublishedSummary[];
+		items: readonly PublishedSummary[];
 		nextCursor: string | null;
 	} = $props();
 	let locale = $derived(extractLocaleFromUrl(new URL(page.url.href)) ?? 'en');
