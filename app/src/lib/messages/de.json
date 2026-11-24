@@ -20,5 +20,7 @@
 	"blog_description": "Lesen Sie veröffentlichte Artikel und Einblicke.",
 	"projects_title": "Projekte",
 	"projects_description": "Entdecken Sie veröffentlichte Projekte und ihre Details.",
-	"content_more": "Mehr"
+	"content_more": "Mehr",
+	"home_title": "Startseite",
+	"home_description": "Vorläufige Startseite. Ersetzen Sie diese Beschreibung vor dem Start."
 }

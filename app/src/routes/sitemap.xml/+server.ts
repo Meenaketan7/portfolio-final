@@ -1,5 +1,5 @@
 import { ORIGIN, PHOENIX_API_ORIGIN } from '$app/env/private';
-import { Data, Effect } from 'effect';
+import { Data, Effect, Result } from 'effect';
 import { apiRequestEffect } from '#config/api/request.js';
 import { parseDiscoveryPage } from '#lib/hooks/api/content/contract.js';
 import {
@@ -14,9 +14,15 @@ import type { RequestHandler } from './$types';
 const MAX_URLS = 50_000;
 const MAX_PAGES = 500;
 const MAX_BYTES = 50 * 1024 * 1024;
+const CACHE_TTL_MS = 60 * 60 * 1000;
 
 /** Discovery returned data that cannot produce a complete, valid sitemap. */
 class DiscoveryFailed extends Data.TaggedError('DiscoveryFailed')<{ readonly reason: string }> {}
+
+/** No complete sitemap can be built right now; `reason` is the 503 response body. */
+class SitemapUnavailable extends Data.TaggedError('SitemapUnavailable')<{
+	readonly reason: string;
+}> {}
 
 /** Pages through Phoenix's discovery endpoint and returns every published content URL. */
 const discoverContent = Effect.fnUntraced(function* (
@@ -59,30 +65,67 @@ const discoverContent = Effect.fnUntraced(function* (
 	return items;
 });
 
-export const GET: RequestHandler = async ({ fetch }) => {
-	if (!ORIGIN) return new Response('Public ORIGIN is not configured', { status: 503 });
-	const items = staticSitemapItems(ORIGIN);
+/** Builds the complete sitemap XML from the static registry and Phoenix's discovery feed. */
+const buildSitemap = Effect.fnUntraced(function* (origin: string, fetcher: typeof fetch) {
+	const items = staticSitemapItems(origin);
 	if (PHOENIX_API_ORIGIN) {
-		const content = await Effect.runPromise(
-			discoverContent(ORIGIN, fetch, MAX_URLS - items.length).pipe(
-				// Any discovery problem means the sitemap would be incomplete, so none is served
-				Effect.catchCause(() => Effect.succeed(null))
+		const content = yield* discoverContent(origin, fetcher, MAX_URLS - items.length).pipe(
+			// Any discovery problem means the sitemap would be incomplete, so none is built
+			Effect.catchCause(() =>
+				Effect.fail(new SitemapUnavailable({ reason: 'Sitemap discovery is unavailable' }))
 			)
 		);
-		if (!content) return new Response('Sitemap discovery is unavailable', { status: 503 });
 		items.push(...content);
 	}
 	if (items.length > MAX_URLS || new Set(items.map((item) => item.url)).size !== items.length) {
-		return new Response('Sitemap limit or duplicate URL', { status: 503 });
+		return yield* new SitemapUnavailable({ reason: 'Sitemap limit or duplicate URL' });
 	}
 	const body = sitemapXml(items);
 	if (new TextEncoder().encode(body).byteLength > MAX_BYTES) {
-		return new Response('Sitemap exceeds 50 MB', { status: 503 });
+		return yield* new SitemapUnavailable({ reason: 'Sitemap exceeds 50 MB' });
 	}
-	return new Response(body, {
+	return body;
+});
+
+/** The last complete sitemap: served for an hour, and afterwards while a rebuild fails. */
+let lastBuilt: { origin: string; body: string; expires: number } | undefined;
+
+/** The rebuild in progress, shared by concurrent requests so Phoenix is walked once. */
+let rebuilding: Promise<Result.Result<string, SitemapUnavailable>> | undefined;
+
+const rebuild = (origin: string, fetcher: typeof fetch) =>
+	Effect.runPromise(
+		buildSitemap(origin, fetcher).pipe(
+			Effect.tap((body) =>
+				Effect.sync(() => {
+					lastBuilt = { origin, body, expires: Date.now() + CACHE_TTL_MS };
+				})
+			),
+			Effect.result
+		)
+	);
+
+const xmlResponse = (body: string) =>
+	new Response(body, {
 		headers: {
 			'content-type': 'application/xml; charset=utf-8',
-			'cache-control': 'no-store'
+			'cache-control': 'public, max-age=3600'
 		}
 	});
+
+export const GET: RequestHandler = async ({ fetch }) => {
+	if (!ORIGIN) return new Response('Public ORIGIN is not configured', { status: 503 });
+	const origin = ORIGIN;
+	if (lastBuilt?.origin === origin && lastBuilt.expires > Date.now()) {
+		return xmlResponse(lastBuilt.body);
+	}
+
+	rebuilding ??= rebuild(origin, fetch).finally(() => {
+		rebuilding = undefined;
+	});
+	const result = await rebuilding;
+	if (Result.isSuccess(result)) return xmlResponse(result.success);
+	// Keep serving the last complete sitemap rather than none; never a partial one
+	if (lastBuilt?.origin === origin) return xmlResponse(lastBuilt.body);
+	return new Response(result.failure.reason, { status: 503 });
 };

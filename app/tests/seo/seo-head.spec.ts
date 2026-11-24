@@ -65,13 +65,35 @@ describe('public page SEO head', () => {
 	});
 
 	it('keeps missing or blank metadata out of the index', () => {
-		for (const seo of [undefined, { title: ' ', description: 'A description' }]) {
-			const { head } = render(SeoHead, { props: { seo, pathname: '/' } });
+		const missing = render(SeoHead, { props: { pathname: '/' } }).head;
 
-			expect(head).toContain('name="robots" content="noindex"');
-			expect(head).not.toContain('<title>');
-			expect(head).not.toContain('name="description"');
-		}
+		expect(missing).toContain('name="robots" content="noindex"');
+		expect(missing).not.toContain('<title>');
+		expect(missing).not.toContain('name="description"');
+
+		// A blank title is left out; the description that does exist is still written
+		const blankTitle = render(SeoHead, {
+			props: { pathname: '/', seo: { title: ' ', description: 'A description' } }
+		}).head;
+
+		expect(blankTitle).toContain('name="robots" content="noindex"');
+		expect(blankTitle).not.toContain('<title>');
+		expect(blankTitle).toContain('name="description" content="A description"');
+	});
+
+	it('keeps the title of a page without a description, but out of the index', () => {
+		const { head } = render(SeoHead, {
+			props: {
+				pathname: '/',
+				siteOrigin: 'https://example.test',
+				seo: { title: 'Home', description: ' ' }
+			}
+		});
+
+		expect(head).toContain('<title>Home</title>');
+		expect(head).not.toContain('name="description"');
+		expect(head).toContain('name="robots" content="noindex"');
+		expect(head).not.toContain('rel="canonical"');
 	});
 
 	it('supports an explicitly non-indexable page with useful metadata', () => {

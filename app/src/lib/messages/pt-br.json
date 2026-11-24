@@ -20,5 +20,7 @@
 	"blog_description": "Leia artigos e ideias publicados.",
 	"projects_title": "Projetos",
 	"projects_description": "Explore projetos publicados e seus detalhes.",
-	"content_more": "Mais"
+	"content_more": "Mais",
+	"home_title": "Início",
+	"home_description": "Página inicial provisória. Substitua esta descrição antes do lançamento."
 }

@@ -20,5 +20,7 @@
 	"blog_description": "Read published articles and insights.",
 	"projects_title": "Projects",
 	"projects_description": "Explore published projects and their details.",
-	"content_more": "More"
+	"content_more": "More",
+	"home_title": "Home",
+	"home_description": "Placeholder home page. Replace this description before launch."
 }

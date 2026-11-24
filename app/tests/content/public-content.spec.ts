@@ -111,6 +111,24 @@ describe('published content contract and SSR', () => {
 		expect(body).not.toContain('<script>bad</script>');
 	});
 
+	it('names the author and, when known, their page in the article JSON-LD', async () => {
+		const url = new URL('https://site.test/ja/blog/sample-post');
+		const withPage = await loadPublishedRecord(
+			'post',
+			'sample-post',
+			url,
+			fetchRecord({ ...record, author: { name: 'Author', url: 'https://author.example/about' } })
+		);
+		const withoutPage = await loadPublishedRecord('post', 'sample-post', url, fetchRecord(record));
+
+		expect(withPage.seo.structuredData?.author).toEqual({
+			'@type': 'Person',
+			name: 'Author',
+			url: 'https://author.example/about'
+		});
+		expect(withoutPage.seo.structuredData?.author).toEqual({ '@type': 'Person', name: 'Author' });
+	});
+
 	it('redirects a historical slug to the current localized path', async () => {
 		let result: unknown;
 		try {
